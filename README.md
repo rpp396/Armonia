@@ -24,7 +24,9 @@ Abre `index.html` en el navegador. Necesita a su lado `styles.css` y las carpeta
 
 - **Tres niveles** por tema (básico, intermedio, avanzado): cambian las tonalidades, las alteraciones y los tipos que entran. El básico no usa dobles alteraciones; el intermedio las admite cuando surgen solas, y el avanzado las busca a propósito (doble sostenido y doble bemol también en los botones de alteración). Los ejercicios de oído no las usan: la ortografía no se oye.
 - **Corrección:** al comprobar se marcan la opción correcta y la elegida; debajo, la respuesta correcta, la partitura y la explicación. En los ejercicios de oído se puede comparar «lo correcto» con «lo que respondiste».
-- **Los intervalos se explican como se calculan habitualmente:** primero el número (contando los nombres de las notas) y después la calidad (contando los semitonos y comparando con la tabla). Todas las correcciones miden las distancias en semitonos; el Resumen conserva los tonos de los apuntes.
+- **Los intervalos se explican como se calculan habitualmente:** primero el número (contando los nombres de las notas) y después la calidad (contando los semitonos y comparando con la tabla). Las correcciones y el Resumen miden las distancias en semitonos.
+- **Acordes con tensiones en sistema de piano** (tema 5): bajo en clave de fa, el resto en el registro central, respetando los *low interval limits*. La 13 ocupa el lugar de la quinta.
+- **Escalas con su armadura** en las soluciones (tema 6).
 - **Progreso** por tema y por tipo de ejercicio.
 - **Sonido** sintetizado en el propio navegador (piano, piano eléctrico, guitarra, órgano o cuerdas).
 - **Accesible y privada:** se usa entera con teclado y lector de pantalla, y no hace ninguna petición a otros sitios.
