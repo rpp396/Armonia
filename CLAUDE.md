@@ -1,6 +1,6 @@
 # Dictado Armónico
 
-App web para practicar los nueve temas del curso de armonía (apuntes en `Temas/`, programa en `Programa del curso.txt`). Cada tema tiene un resumen, ejercicios de teoría y ejercicios de oído generados al azar; el alumno responde con botones y, si falla, ve la respuesta correcta y la explicación. La interfaz está en español. Hermana de DandeBook y DandEtudeDuR (rpp396), de las que toma la paleta, las tipografías, los glifos, los instrumentos y las convenciones.
+App web para practicar los nueve temas del curso de armonía (apuntes en `Temas/` y programa en `Programa del curso.txt`, que no están en el repositorio; su contenido está resumido en `APUNTES.md`, que es la referencia cuando no están los PDF). Cada tema tiene un resumen, ejercicios de teoría y ejercicios de oído generados al azar; el alumno responde con botones y, si falla, ve la respuesta correcta y la explicación. La interfaz está en español. Hermana de DandeBook y DandEtudeDuR (rpp396), de las que toma la paleta, las tipografías, los glifos, los instrumentos y las convenciones.
 
 La app no tiene dependencias ni build: `index.html` (solo HTML), `styles.css` (todos los estilos, con las variables de color y el modo oscuro), las fuentes en `fonts/` y el JavaScript en `js/`, repartido en scripts clásicos que `index.html` carga al final del `<body>` en orden. Para probarla basta con abrir `index.html` (funciona con `file://`) o servir la carpeta. El audio arranca solo tras pulsar un botón.
 
@@ -53,7 +53,7 @@ registrar({id:'t1-identificar', tema:1, modo:'teoria'|'oido', titulo, gen(R, niv
 - **Calidad de intervalos:** `j`, `M`, `m`, `+`, `-` (5j, 3M, 4+, 5-).
 - **Bajo cifrado:** abreviado; las notas con alteración distinta de la armadura llevan su signo junto a la cifra; la tercera alterada, si no es parte de la cifra, es el signo solo. En los apuntes hay algún ejemplo que escribe el 3 y otro que no; aquí la regla es siempre esa.
 - **Grados:** en mayor la escala implícita es la mayor (`Ma` = mayor armónica); en menor, la armónica (`nat`, `mel`).
-- **`TENS_DISP` y `FUNCIONES`** están transcritas a mano de las tablas de los temas 7, 8 y 9. Las tensiones del PDF están en imágenes pequeñas: si se duda de una, mirar el PDF.
+- **`TENS_DISP` y `FUNCIONES`** están transcritas a mano de las tablas de los temas 7, 8 y 9. Las tensiones del PDF están en imágenes pequeñas: si se duda de una, mirar el PDF (o `APUNTES.md` si no está).
 - Las definiciones de `NFM` (tema 4) son las de los apuntes. «Nota de paso acentuada» y «grupo de notas de paso» no están definidas allí: aquí, acentuada = suena al articularse el acorde; grupo = dos notas de paso seguidas.
 
 ## Diseño y accesibilidad
