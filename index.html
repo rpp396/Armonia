@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dictado Armónico</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#app">Saltar al contenido</a>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1><a href="#/">Dictado Armónico</a></h1>
+      <p>Ejercicios de armonía, de teoría y de oído, con la respuesta explicada.</p>
+    </div>
+  </header>
+  <main id="app" tabindex="-1"></main>
+  <footer class="pie">
+    <label>Sonido <select id="snd"></select></label>
+    <button type="button" class="btn sm" id="bBorrar">Borrar el progreso</button>
+    <div class="ask" id="borrarAsk" role="group" aria-labelledby="borrarQ" hidden>
+      <p id="borrarQ">¿Borrar todo el progreso guardado en este navegador? No se puede deshacer.</p>
+      <button type="button" class="btn sm danger" id="bBorrarSi">Borrar</button>
+      <button type="button" class="btn sm" id="bBorrarNo">Cancelar</button>
+    </div>
+    <p class="nota">Atajos: <kbd>E</kbd> escuchar · <kbd>Intro</kbd> comprobar y pasar al siguiente. El progreso se guarda solo en este navegador.</p>
+  </footer>
+</div>
+<div id="sr" class="sr-only" role="status" aria-live="polite"></div>
+<script src="js/glifos.js"></script>
+<script src="js/datos.js"></script>
+<script src="js/teoria.js"></script>
+<script src="js/pentagrama.js"></script>
+<script src="js/instrumentos.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/secuencias.js"></script>
+<script src="js/ejercicio.js"></script>
+<script src="js/temas/t1.js"></script>
+<script src="js/temas/t2.js"></script>
+<script src="js/temas/t3.js"></script>
+<script src="js/temas/t4.js"></script>
+<script src="js/temas/t5.js"></script>
+<script src="js/temas/t6.js"></script>
+<script src="js/temas/t7.js"></script>
+<script src="js/temas/t8.js"></script>
+<script src="js/temas/t9.js"></script>
+<script src="js/resumen.js"></script>
+<script src="js/interfaz.js"></script>
+<script src="js/inicio.js"></script>
+</body>
+</html>

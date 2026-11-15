@@ -1,0 +1,11 @@
+{
+  "name": "dictado-armonico",
+  "private": true,
+  "description": "Ejercicios de armonía, de teoría y de oído (sin build ni dependencias). Este package.json solo existe para las pruebas.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node tests/run.mjs"
+  }
+}
