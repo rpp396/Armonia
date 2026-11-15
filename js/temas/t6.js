@@ -3,7 +3,9 @@
 'use strict';
 
 /* ---------- Ayudas ---------- */
-const topeArm=nv=>nv<=1?3:nv===2?5:7;
+// desde intermedio, las 13 tonalidades habituales: de 6 bemoles a 6 sostenidos (sin las armaduras de 7)
+const ARM_MAX=6;
+const topeArm=nv=>nv<=1?3:ARM_MAX;
 const armAzar=(R,nv)=>R.int(2*topeArm(nv)+1)-topeArm(nv);
 // tonalidad al azar con armadura dentro del nivel
 function tonalidadAzar(R,nv,modo){ const m=modo||R.pick(['M','m']), n=armAzar(R,nv); return {tonica:tonicaDe(n,m),modo:m,arm:n}; }
@@ -76,7 +78,7 @@ registrar({id:'t6-grado',tema:6,modo:'teoria',titulo:'Construir la escala',gen(R
 
 /* ---------- Oído ---------- */
 registrar({id:'t6-oido',tema:6,modo:'oido',titulo:'Reconocer la escala',gen(R,nv){
-  return intentar(()=>{ const tipos=nv<=1?['mayor','menorNat','menorArm']:nv===2?['mayor','menorNat','menorArm','menorMel']:ESC_KEYS, tipo=tipoEscala(R,tipos), arm=armAzar(R,1), tonica=tonicaDe(arm,ESCALAS[tipo].modo), notas=escalaEscrita(tonica,tipo); if(maxAlt(notas)>1) return null;
+  return intentar(()=>{ const tipos=nv<=1?['mayor','menorNat','menorArm']:nv===2?['mayor','menorNat','menorArm','menorMel']:ESC_KEYS, tipo=tipoEscala(R,tipos), arm=armAzar(R,nv), tonica=tonicaDe(arm,ESCALAS[tipo].modo), notas=escalaEscrita(tonica,tipo); if(maxAlt(notas)>1) return null;
     return { enunciado:'Escucha la escala ascendente. ¿De qué tipo es?', vista:'', vistaSol:pent(notas.map(n=>({notas:[n],sep:1.7})),{arm}), sonar:secEscala(notas), sonarResp:r=>r.tipo?secEscala(escalaEscrita(tonica,r.tipo)):null,
       campos:[campo('tipo','Escala',tipos.map(k=>op(k,Cap(ESCALAS[k].nom))))], sol:{tipo}, resumen:`Sonó ${escNom(tonica,tipo)}: ${notas.slice(0,7).map(nom).join(' ')}.`,
       explicar:r=>par(`Sonó <b>${escNom(tonica,tipo)}</b>: ${notas.slice(0,7).map(nom).join(' ')}. Tiene ${ESC_RASGO[tipo]}.`,'Para oírlo: primero la tercera (mayor o menor decide el modo) y después el final de la escala, donde están la sexta y la séptima.')+

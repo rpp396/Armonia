@@ -6,6 +6,7 @@
 // Un generador: {id, tema, modo:'teoria'|'oido', titulo, gen(R, nivel)}. gen devuelve un ejercicio:
 //   enunciado (html) · vista (html, la partitura; '' si no hay) · vistaSol (html que se revela al corregir)
 //   sonar (secuencia de audio.js o null) · sonarResp(resp) → secuencia de lo que el alumno respondió (opcional)
+//   ref: {tonica, cadencia} → secuencias de referencia que se oyen aparte, con su propio botón (opcional; ejercicios con cadencia)
 //   campos: [{id, etiqueta, opciones:[{v, t, voz}], multi}] · sol: {campo: valor | [valores]} · acepta: {campo: [otros valores válidos]}
 //   explicar(resp) → html con la explicación paso a paso · resumen: una línea con el porqué
 const EJ=[];

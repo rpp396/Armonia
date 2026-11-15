@@ -4,7 +4,7 @@
 
 /* ---------- Ayudas ---------- */
 const escalasNivel=(modo,nv)=>modo==='M'?(nv<=1?['mayor']:['mayor','mayorArm']):(nv<=1?['menorArm']:nv===2?['menorArm','menorNat']:ESC_MODO.m);
-const tonNivel=(R,nv,modo)=>{ const tope=nv<=1?1:nv===2?3:7, arm=R.int(2*tope+1)-tope; return {tonica:tonicaDe(arm,modo),modo,arm}; };
+const tonNivel=(R,nv,modo)=>{ const tope=nv<=1?1:ARM_MAX, arm=R.int(2*tope+1)-tope; return {tonica:tonicaDe(arm,modo),modo,arm}; };
 const sufTxt=esc=>({mayor:'la escala mayor (sin indicación, es la de referencia)',mayorArm:'la escala mayor armónica (se indica con «Ma»)',menorArm:'la escala menor armónica (sin indicación, es la de referencia)',menorNat:'la escala menor natural (se indica con «nat»)',menorMel:'la escala menor melódica (se indica con «mel»)'}[esc]);
 // cifra apilada junto al grado: V6/5 → V con 6 sobre 5
 const gradoHTML=(etiq,fig)=>esc(etiq)+(fig?`<span class="bc in">${fig.split('/').map(x=>`<span>${esc(x)}</span>`).join('')}</span>`:'');
@@ -16,6 +16,9 @@ function gradosOido(tonica,modo,nv){
 }
 const SEC_CAD=0.95;
 const secCadencia=(tonica,modo)=>secProgresion(vocesProgresion(cadencia(tonica,modo)),SEC_CAD);
+// referencias que el alumno puede oír aparte antes del ejercicio: el acorde de tónica solo y la cadencia
+const secTonica=(tonica,modo)=>secProgresion([vozAcorde(cadencia(tonica,modo)[0])],2.2);
+const refTonal=(tonica,modo)=>({tonica:secTonica(tonica,modo),cadencia:secCadencia(tonica,modo)});
 const pentGrados=(lista_,arm)=>pent(lista_.map((x,i)=>({notas:disponer(x.ac,0),arriba:cifrado(x.ac),abajo:[x.etiq],barra:i>0})),{arm});
 
 function registrarGrados(tema,modo){
@@ -82,7 +85,7 @@ function registrarGrados(tema,modo){
   /* ----- Oído ----- */
   registrar({id:pref+'-oido-grado',tema,modo:'oido',titulo:'Reconocer el grado',gen(R,nv){
     const T=tonNivel(R,Math.min(nv,2),modo), set=gradosOido(T.tonica,modo,nv), x=R.pick(set), cad=secCadencia(T.tonica,modo), sec=a=>unir(cad,0.55,[{t:0,m:[vozAcorde(a).bajo],d:2.3,r:'bass',v:0.8},{t:0,m:vozAcorde(a).voces,d:2.3,r:'chord'}]);
-    return { enunciado:`Primero suena la cadencia I–IV–V–I de <b>${nomTonalidad(T.tonica,modo)}</b> y, tras una pausa, un acorde. ¿Qué grado es?`, vista:'', vistaSol:pentGrados([x],T.arm), sonar:sec(x.ac),
+    return { enunciado:`Primero suena la cadencia I–IV–V–I de <b>${nomTonalidad(T.tonica,modo)}</b> y, tras una pausa, un acorde. ¿Qué grado es?`, vista:'', vistaSol:pentGrados([x],T.arm), sonar:sec(x.ac), ref:refTonal(T.tonica,modo),
       sonarResp:r=>{ const y=set.find(s=>s.etiq===r.grado); return y?sec(y.ac):null; },
       campos:[campo('grado','Grado',set.map(s=>op(s.etiq,`${esc(s.etiq)} · ${esc(TIPOS[s.ac.tipo].gen)}`)))], sol:{grado:x.etiq}, resumen:`Sonó ${cifrado(x.ac)}: el ${x.etiq} de ${nomTonalidad(T.tonica,modo)}.`,
       explicar:r=>{ const y=set.find(s=>s.etiq===r.grado);
@@ -96,7 +99,7 @@ function registrarGrados(tema,modo){
     while(prog.length<4){ const c=R.pick(set); if(c!==prog[prog.length-1]) prog.push(c); }
     const sec=p=>unir(secCadencia(T.tonica,modo),0.7,secProgresion(vocesProgresion(p.map(c=>c.ac)),1.5));
     const campos=[1,2,3].map(i=>campo('g'+i,`Acorde ${i+1}`,set.map(s=>op(s.etiq)))), sol={}; [1,2,3].forEach(i=>{ sol['g'+i]=prog[i].etiq; });
-    return { enunciado:`Suena la cadencia de <b>${nomTonalidad(T.tonica,modo)}</b> y, tras una pausa, una progresión de cuatro acordes que empieza en el <b>I</b>. ¿Qué grados son los otros tres?`, vista:'', vistaSol:pentGrados(prog,T.arm), sonar:sec(prog),
+    return { enunciado:`Suena la cadencia de <b>${nomTonalidad(T.tonica,modo)}</b> y, tras una pausa, una progresión de cuatro acordes que empieza en el <b>I</b>. ¿Qué grados son los otros tres?`, vista:'', vistaSol:pentGrados(prog,T.arm), sonar:sec(prog), ref:refTonal(T.tonica,modo),
       sonarResp:r=>{ const p=[prog[0]].concat([1,2,3].map(i=>set.find(s=>s.etiq===r['g'+i]))); return p.every(Boolean)?sec(p):null; },
       campos, sol, resumen:`La progresión era ${prog.map(c=>c.etiq).join(' – ')} (${prog.map(c=>cifrado(c.ac)).join(' – ')}).`,
       explicar:r=>par(`La progresión era <b>${prog.map(c=>c.etiq).join(' – ')}</b>: ${prog.map(c=>cifrado(c.ac)).join(' – ')}.`,
