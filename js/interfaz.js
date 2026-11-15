@@ -3,7 +3,7 @@
 'use strict';
 
 /* ---------- Estado de la vista ---------- */
-const V={tema:null,tab:'resumen',gen:null,ej:null,resp:{},corr:null,sonando:null,sesion:{n:0,ok:0}};
+const V={tema:null,tab:'resumen',gen:null,ej:null,resp:{},corr:null,sonando:null,sesion:{n:0,ok:0},vistos:[]};
 const TABS=[['resumen','Resumen'],['teoria','Teoría'],['oido','Oído']];
 const semillaURL=()=>{ const m=/[?&]semilla=(\d+)/.exec(location.search); return m?+m[1]:null; };
 let semillaN=0;
@@ -29,8 +29,8 @@ function renderPortada(){
 function renderTema(){
   const t=PROGRAMA[V.tema-1], nv=nivelDe(V.tema);
   $('#app').innerHTML=`<nav aria-label="Navegación"><a class="volver" href="#/">← Todos los temas</a></nav>
-    <header class="th"><div><p class="tn">Tema ${t.n}</p><h2 id="hTema" tabindex="-1">${esc(t.titulo)}</h2></div>
-      <label class="niv">Nivel <select id="nivel">${NIVELES.map(([v,x])=>`<option value="${v}"${v===nv?' selected':''}>${x}</option>`).join('')}</select></label></header>
+    <header class="th"><div><p class="tn">Tema ${t.n}</p><h2 id="hTema" tabindex="-1">${esc(t.titulo)}</h2></div></header>
+    <div class="niv" role="group" aria-labelledby="nivL"><span class="nivl" id="nivL">Dificultad</span>${NIVELES.map(([v,x])=>`<button type="button" class="nivb" data-nivel="${v}" aria-pressed="${v===nv}">${x}</button>`).join('')}</div>
     <div class="tabs" role="tablist" aria-label="Secciones del tema">${TABS.map(([k,x])=>`<button type="button" role="tab" id="tab-${k}" data-tab="${k}" aria-selected="${k===V.tab}" aria-controls="panel" tabindex="${k===V.tab?0:-1}">${x}</button>`).join('')}</div>
     <section id="panel" role="tabpanel" aria-labelledby="tab-${V.tab}"></section>`;
   document.title=`Tema ${t.n}: ${t.titulo} · Dictado Armónico`;
@@ -51,15 +51,20 @@ function genActual(){ const gens=ejerciciosDe(V.tema,V.tab), k=V.tema+'-'+V.tab,
 
 /* ---------- Ejercicio ---------- */
 function nuevo(){
-  detener(); V.sonando=null; const g=genActual(), base=semillaURL(), seed=base!==null?base+(semillaN++):(Math.random()*4294967296)>>>0;
-  V.gen=g; V.ej=g.gen(crearRng(seed),nivelDe(V.tema)); V.resp={}; V.corr=null; V.ej.campos.forEach(c=>{ if(c.multi) V.resp[c.id]=[]; });
+  detener(); V.sonando=null; const g=genActual(), base=semillaURL(), nv=nivelDe(V.tema); let ej, firma;
+  // sin semilla fija, se descarta el ejercicio que coincide con alguno de los ocho últimos
+  for(let i=0;i<12;i++){ const seed=base!==null?base+(semillaN++):(Math.random()*4294967296)>>>0;
+    ej=g.gen(crearRng(seed),nv); firma=g.id+'|'+ej.enunciado+'|'+JSON.stringify(ej.sol); if(base!==null||!V.vistos.includes(firma)) break; }
+  V.vistos.push(firma); if(V.vistos.length>8) V.vistos.shift();
+  V.gen=g; V.ej=ej; V.resp={}; V.corr=null; V.ej.campos.forEach(c=>{ if(c.multi) V.resp[c.id]=[]; });
   renderEj(); marcador();
 }
 function renderEj(){
   const e=V.ej, hecho=!!V.corr, oir=e.sonar&&(!e.sonarTras||hecho);
   $('#ej').innerHTML=`<p class="tipo">${esc(V.gen.titulo)}</p><p class="enun" id="enun">${e.enunciado}</p>
     ${e.vista?`<div class="vista">${e.vista}</div>`:''}
-    ${oir?`<p class="oir"><button type="button" class="btn play" data-oir="ej">${icono('play')}<span>${V.tab==='oido'?'Escuchar':'Oír'}</span></button>${V.tab==='oido'?'<span class="pista">Puedes escucharlo las veces que quieras.</span>':''}</p>`:''}
+    ${oir&&e.ref?`<p class="oir"><button type="button" class="btn ref" data-oir="tonica">${icono('play')}<span>Acorde de tónica</span></button><button type="button" class="btn ref" data-oir="cadencia">${icono('play')}<span>Cadencia de referencia</span></button><button type="button" class="btn play" data-oir="ej">${icono('play')}<span>Escuchar el ejercicio</span></button><span class="pista">La tónica y la cadencia sirven de referencia. Puedes escuchar cada cosa las veces que quieras.</span></p>`
+      :oir?`<p class="oir"><button type="button" class="btn play" data-oir="ej">${icono('play')}<span>${V.tab==='oido'?'Escuchar':'Oír'}</span></button>${V.tab==='oido'?'<span class="pista">Puedes escucharlo las veces que quieras.</span>':''}</p>`:''}
     <div class="campos">${e.campos.map(c=>`<fieldset class="campo" data-campo="${c.id}"${hecho?' disabled':''}><legend>${esc(c.etiqueta)}${c.multi?' <small>(varias)</small>':''}</legend><div class="ops">
       ${c.opciones.map(o=>{ const marcado=c.multi?V.resp[c.id].includes(o.v):V.resp[c.id]===o.v; let cls='';
         if(hecho){ const buena=c.multi?e.sol[c.id].map(String).includes(o.v):(String(e.sol[c.id])===o.v||(marcado&&V.corr.campos[c.id])); cls=buena?' bien':marcado?' mal':''; }
@@ -96,7 +101,7 @@ const textoPlano=h=>{ const d=document.createElement('div'); d.innerHTML=h; retu
 /* ---------- Sonido ---------- */
 function oir(que,btn){
   if(V.sonando===btn){ detener(); finSonido(); return; }
-  const sec=que==='resp'?V.ej.sonarResp(V.resp):que==='ej'?V.ej.sonar:RES_SEC[+que];
+  const sec=que==='resp'?V.ej.sonarResp(V.resp):que==='ej'?V.ej.sonar:que==='tonica'||que==='cadencia'?V.ej.ref[que]:RES_SEC[+que];
   finSonido(); if(!tocar(sec,finSonido)){ say('No se pudo iniciar el sonido.'); return; }
   V.sonando=btn; btn.classList.add('on'); btn.dataset.txt=$('span',btn)?$('span',btn).textContent:btn.textContent; (btn.querySelector('span')||btn).textContent='Detener';
 }
@@ -116,6 +121,8 @@ function bind(){
   $('#app').addEventListener('click',ev=>{
     const b=ev.target.closest('button'); if(!b) return;
     if(b.dataset.tab){ location.hash=`#/tema/${V.tema}/${b.dataset.tab}`; return; }
+    if(b.dataset.nivel){ const n=intIn(+b.dataset.nivel,1,3,3); store.set.nivel[V.tema]=n; save(); $$('.nivb').forEach(c=>c.setAttribute('aria-pressed',String(c===b)));
+      if(V.tab!=='resumen') nuevo(); say(`Nivel ${NIVELES[n-1][1].toLowerCase()}.`); return; }
     if(b.dataset.gen){ store.set.tipo[V.tema+'-'+V.tab]=b.dataset.gen; save(); $$('.chip[data-gen]').forEach(c=>c.setAttribute('aria-pressed',String(c===b))); nuevo(); return; }
     if(b.classList.contains('opb')){ elegir(b.closest('[data-campo]').dataset.campo,b.dataset.v); return; }
     if(b.id==='bComprobar'){ comprobar(); return; }
@@ -123,7 +130,6 @@ function bind(){
     if(b.dataset.oir){ oir(b.dataset.oir,b); return; }
     if(b.dataset.ejm){ oir(b.dataset.ejm,b); return; }
   });
-  $('#app').addEventListener('change',ev=>{ if(ev.target.id==='nivel'){ store.set.nivel[V.tema]=intIn(+ev.target.value,1,3,1); save(); if(V.tab!=='resumen') nuevo(); } });
   // pestañas con flechas, Inicio y Fin
   $('#app').addEventListener('keydown',ev=>{ const t=ev.target.closest('[role="tab"]'); if(!t) return; const i=TABS.findIndex(x=>x[0]===t.dataset.tab);
     const j=ev.key==='ArrowRight'?(i+1)%3:ev.key==='ArrowLeft'?(i+2)%3:ev.key==='Home'?0:ev.key==='End'?2:-1; if(j<0) return; ev.preventDefault(); location.hash=`#/tema/${V.tema}/${TABS[j][0]}`; setTimeout(()=>{ const n=$('#tab-'+TABS[j][0]); if(n) n.focus(); },0); });

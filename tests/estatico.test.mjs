@@ -21,7 +21,7 @@ for (const m of css.matchAll(/url\(([^)]+)\)/g)) ok(fs.existsSync(path.join(ROOT
 suite('Datos guardados');
 const { cleanSet, cleanProg } = cargar(['cleanSet', 'cleanProg'], ['js/datos.js']);
 eq(cleanSet(null), { snd: 'piano', nivel: {}, tipo: {} }, 'ajustes por defecto');
-eq(cleanSet({ snd: '<x>', nivel: { 1: 3, 2: 9, x: 1 }, tipo: { '1-teoria': 't1-construir', 'x': 'y', '2-oido': 5 } }), { snd: 'piano', nivel: { 1: 3, 2: 1 }, tipo: { '1-teoria': 't1-construir' } }, 'los ajustes extraños se descartan');
+eq(cleanSet({ snd: '<x>', nivel: { 1: 3, 2: 9, x: 1 }, tipo: { '1-teoria': 't1-construir', 'x': 'y', '2-oido': 5 } }), { snd: 'piano', nivel: { 1: 3, 2: 3 }, tipo: { '1-teoria': 't1-construir' } }, 'los ajustes extraños se descartan');
 eq(cleanProg({ 't1-oido': { n: 5, ok: 9, racha: 2, mejor: 3 }, '__proto__': { n: 1 }, 'malo': { n: 1 }, 't2-tipo': 'x', 't3-tipo': { n: -1, ok: 'a' } }),
   { 't1-oido': { n: 5, ok: 5, racha: 2, mejor: 3 }, 't3-tipo': { n: 0, ok: 0, racha: 0, mejor: 0 } }, 'el progreso extraño se descarta y los aciertos no superan los intentos');
 fin();

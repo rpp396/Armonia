@@ -59,7 +59,7 @@ registrar({id:'t9-oido',tema:9,modo:'oido',titulo:'Función de cada acorde',gen(
   const prog=[set[0]]; while(prog.length<4){ const c=R.pick(set); if(c!==prog[prog.length-1]) prog.push(c); }
   const campos=[1,2,3].map(i=>campo('f'+i,`Acorde ${i+1}`,OP_FUNC())), sol={}, acepta={}; [1,2,3].forEach(i=>{ sol['f'+i]=prog[i].f; if(prog[i].otras.length) acepta['f'+i]=prog[i].otras; });
   return { enunciado:`Suena la cadencia de <b>${nomTonalidad(T.tonica,modo)}</b> y, tras una pausa, cuatro acordes; el primero es la tónica. ¿Qué función cumple cada uno de los otros tres?`, vista:'', vistaSol:pentGrados(prog,T.arm),
-    sonar:unir(secCadencia(T.tonica,modo),0.7,secProgresion(vocesProgresion(prog.map(c=>c.ac)),1.6)), campos, sol, acepta,
+    sonar:unir(secCadencia(T.tonica,modo),0.7,secProgresion(vocesProgresion(prog.map(c=>c.ac)),1.6)), ref:refTonal(T.tonica,modo), campos, sol, acepta,
     resumen:`${prog.map(c=>c.etiq).join(' – ')}: ${prog.map(c=>FUNC_NOM[c.f]).join(' – ')}.`,
     explicar:r=>par(`La progresión era <b>${prog.map(c=>c.etiq).join(' – ')}</b> (${prog.map(c=>cifrado(c.ac)).join(' – ')}).`)+
       '<ol class="pasos">'+prog.map((c,i)=>{ const x=rasgos(T.tonica,esc,c.ac), fs=funcionesDe(modo,c.etiq);

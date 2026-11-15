@@ -45,7 +45,7 @@ const DEFAULTS={snd:'piano',nivel:{},tipo:{}};
 function cleanSet(s){
   const o={snd:'piano',nivel:{},tipo:{}}; if(!isObj(s)) return o;
   o.snd=oneOf(s.snd,SONIDOS.map(x=>x[0]),'piano');
-  if(isObj(s.nivel)) for(let n=1;n<=9;n++) if(has(s.nivel,n)) o.nivel[n]=intIn(s.nivel[n],1,3,1);
+  if(isObj(s.nivel)) for(let n=1;n<=9;n++) if(has(s.nivel,n)) o.nivel[n]=intIn(s.nivel[n],1,3,3);
   if(isObj(s.tipo)) for(const k of Object.keys(s.tipo).slice(0,40)) if(/^[1-9]-(teoria|oido)$/.test(k)&&typeof s.tipo[k]==='string'&&s.tipo[k].length<40) o.tipo[k]=s.tipo[k];
   return o;
 }
@@ -59,4 +59,5 @@ function cleanProg(p){
 let store={set:cleanSet(null),prog:{}};
 function load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ const d=JSON.parse(raw); store={set:cleanSet(d&&d.set),prog:cleanProg(d&&d.prog)}; } }catch(e){ store={set:cleanSet(null),prog:{}}; } }
 function save(){ try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){} }
-function nivelDe(tema){ return store.set.nivel[tema]||1; }
+// sin nivel elegido, el tema empieza en avanzado
+function nivelDe(tema){ return store.set.nivel[tema]||3; }

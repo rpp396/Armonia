@@ -30,6 +30,7 @@ registrar({id:'t1-identificar', tema:1, modo:'teoria'|'oido', titulo, gen(R, niv
   return { enunciado,            // html
     vista, vistaSol,             // partitura antes de responder / la que se revela al corregir
     sonar, sonarTras, sonarResp, // secuencia; true = solo se oye tras corregir; función(resp) → lo que el alumno respondió
+    ref: {tonica, cadencia},     // opcional: secuencias de referencia con botón propio (ejercicios con cadencia; `refTonal` en t7.js)
     campos: [campo(id, etiqueta, [op(valor, html, voz)…], multi)],
     sol: {id: valor | [valores]}, acepta: {id: [otros valores válidos]},
     resumen,                     // una línea: se muestra al acertar
@@ -48,6 +49,10 @@ registrar({id:'t1-identificar', tema:1, modo:'teoria'|'oido', titulo, gen(R, niv
 - **Todas las distancias se miden en semitonos** (`semTxt`), en las correcciones y en el Resumen: lo pidió el usuario. `tonosTxt` ya no se usa en la app.
 - **Acordes del tema 5** (lo pidió el usuario): en sistema de piano, con `vozEstructura`. La fundamental va sola en el bajo, entre mi2 y re♯3. Las demás notas van en posición cerrada en el registro central, desde fa3, y la disposición respeta los **LIL** (*low interval limits* de Berklee). La 13 o ♭13 **sustituye a la quinta justa** (`sinQuinta`), no suena junto a ella. En «Qué tensión suena» primero suena la cáscara (fundamental, tercera y séptima) y después la cáscara con la tensión encima. «Sus, add, sexta o séptima» incluye m, m6, 7, m7, 6sus4 y 6sus2.
 - **Escalas del tema 6:** las soluciones se escriben con la armadura de su tonalidad (`{arm}`). La mayor sale con menos peso que las demás (`PESO_ESC`), porque el usuario oía demasiadas mayores.
+- **Nivel:** un tema sin nivel elegido empieza en **avanzado** (`nivelDe`). El nivel se elige con tres botones (`.nivb`, `data-nivel`) bajo el título del tema, no con un desplegable. Lo pidió el usuario.
+- **Tonalidades:** desde intermedio se sortean **las 13 habituales**, de 6 bemoles a 6 sostenidos (`ARM_MAX` en `t6.js`; nunca armaduras de 7). El básico se queda con pocas alteraciones: hasta 3 en el tema 6 (`topeArm`) y hasta 1 en los temas 7 a 9 (`tonNivel`). Lo pidió el usuario.
+- **Ejercicios de oído con cadencia** (`oido-grado` y `oido-progresion` de los temas 7 y 8, `t9-oido`): tres botones, «Acorde de tónica», «Cadencia de referencia» y «Escuchar el ejercicio». El tercero toca cadencia, pausa y ejercicio (`sonar`); los dos primeros salen de `ref`. Lo pidió el usuario.
+- **Repeticiones:** `nuevo()` descarta el ejercicio que coincide con alguno de los ocho últimos (`V.vistos`), salvo con `?semilla=`.
 - **Dobles alteraciones** (`ejercicio.js`): `topeAlt(nivel)` es 1 en básico y 2 desde intermedio; `pideDoble(R, nivel)` hace que el avanzado busque una doble en el 35 % de los ejercicios (decidirlo fuera de `intentar()`, si no casi nunca sale); `sinDobles` las quita de los distractores del básico; `campoAlt(max)` añade ♯♯ y ♭♭ a los botones. Los ejercicios de oído no las usan. Las pruebas exigen 0 % en básico y al menos 4 % en avanzado.
 - **Cifrado popular:** `C`, `Cm`, `Caug`, `Cº`; `Cmaj7`, `C7`, `Cmmaj7`, `Cm7`, `Caugmaj7`, `Caug7`, `Cm7(♭5)`, `Cº7`. Tensiones en superíndice, entre paréntesis si alguna no es mayor ni justa.
 - **Calidad de intervalos:** `j`, `M`, `m`, `+`, `-` (5j, 3M, 4+, 5-).

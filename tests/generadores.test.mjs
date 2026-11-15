@@ -48,6 +48,8 @@ for (const g of EJ) {
     falla(!roto(solucionHTML(e)), `${donde}: solución en palabras`);
     for (const v of [e.vista, e.vistaSol]) if (v) falla(v.startsWith('<svg') && !roto(v.replace(/aria-label="[^"]*"/, '')), `${donde}: partitura`);
     if (g.modo === 'oido') falla(secOK(e.sonar), `${donde}: el ejercicio de oído suena`); else if (e.sonar) falla(secOK(e.sonar), `${donde}: sonido`);
+    if (e.ref) falla(secOK(e.ref.tonica) && secOK(e.ref.cadencia), `${donde}: la tónica y la cadencia de referencia suenan`);
+    if (/^t[789]-oido(-grado|-progresion)?$/.test(g.id)) falla(!!e.ref, `${donde}: el ejercicio con cadencia trae las referencias`);
     if (g.modo === 'oido') falla(!e.vista, `${donde}: el ejercicio de oído no enseña la partitura antes de responder`);
   }
   ok(vistos.size >= 8, `genera ejercicios variados (${vistos.size} distintos)`);
