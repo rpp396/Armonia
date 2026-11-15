@@ -63,4 +63,14 @@ for (const g of EJ.filter(e => e.modo === 'teoria')) {
 }
 const conAlt = EJ.filter(g => g.modo === 'teoria').flatMap(g => [g.gen(crearRng(1), 3)]).flatMap(e => e.campos).filter(c => c.id === 'alt');
 ok(conAlt.length > 0 && conAlt.every(c => ['-2', '2'].every(v => c.opciones.some(o => o.v === v))), 'en avanzado, los botones de alteración incluyen doble sostenido y doble bemol');
+suite('Tema 5 y tema 6');
+{ const est = EJ.find(e => e.id === 't5-oido-estructura').gen(crearRng(1), 3).campos[0].opciones.map(o => o.v);
+  ok(['m7', '6sus4', '6sus2', '7sus4', 'm6'].every(k => est.includes(k)), 'en avanzado se oyen m7, m6, 6sus4, 6sus2 y 7sus4');
+  const t5 = EJ.filter(e => e.tema === 5 && e.modo === 'teoria');
+  ok(t5.every(g => [1, 2, 3].every(nv => g.gen(crearRng(nv), nv)[g.id === 't5-cifrar' ? 'vista' : 'vistaSol'].includes('#g-fClef'))), 'los acordes del tema 5 se escriben en clave de sol y fa');
+  for (const nv of [1, 2, 3]) { const c = {}, g = EJ.find(e => e.id === 't6-oido'); for (let s = 0; s < 600; s++) { const t = g.gen(crearRng(s * 17 + nv), nv).sol.tipo; c[t] = (c[t] || 0) + 1; }
+    const n = Object.keys(c).length; ok(c.mayor / 600 < 1 / n, `t6-oido nivel ${nv}: la mayor no sale más que las demás (${JSON.stringify(c)})`); }
+  { const g = EJ.find(x => x.id === 't6-escala'); let con = 0, bien = 0; for (let s = 0; s < 100; s++) { const e = g.gen(crearRng(s), 2); if (/sin alteraciones[)]/.test(e.explicar({}))) continue; con++; if (e.vistaSol && e.vistaSol !== e.vista && (e.vistaSol.match(/#g-(flat|sharp)/g) || []).length > (e.vista.match(/#g-(flat|sharp)/g) || []).length - 8) bien++; }
+    ok(con > 50 && bien === con, `las soluciones de t6-escala se escriben con la armadura (${bien} de ${con})`); }
+}
 fin();

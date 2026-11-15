@@ -4,7 +4,7 @@ import { cargar, suite, ok, eq, fin } from './lib.mjs';
 const T = cargar(['nota', 'nom', 'cif', 'intervalo', 'sumar', 'invertir', 'iTxt', 'iNom', 'tonosTxt', 'explicaIntervalo', 'acorde', 'cifrado', 'disponer',
   'clasificar', 'bajoCifrado', 'cifradoEstructura', 'notasEstructura', 'armaduraDe', 'tonicaDe', 'campoDiatonico', 'tritonoDe', 'semitonoMayor',
   'semitonoMenor', 'escala', 'patron', 'acordeDeGrado', 'gradosDe', 'tensDisp', 'TENS', 'TENS_DISP', 'ESC_KEYS', 'TIPOS', 'gradoAcademico',
-  'gradoPopular', 'funcionesDe', 'midi', 'paso', 'pcDe'], ['js/datos.js', 'js/teoria.js']);
+  'gradoPopular', 'funcionesDe', 'midi', 'paso', 'pcDe', 'vozEstructura', 'cumpleLIL', 'BASES'], ['js/datos.js', 'js/teoria.js']);
 const { nota } = T;
 const iv = (a, b) => { const x = T.intervalo(nota(a), nota(b)); return T.iTxt(x.num, x.cal); };
 const par = s => { const [a, b] = s.split('-'); return [a, b]; };
@@ -88,4 +88,21 @@ eq(T.funcionesDe('M', 'VI'), [{ f: 'T', cert: 'u' }, { f: 'S', cert: 'c' }], 'VI
 eq(T.funcionesDe('m', 'IIInat'), [{ f: 'T', cert: 'u' }], 'IIInat'); eq(T.funcionesDe('m', 'VIInat'), [{ f: 'D', cert: 'u' }], 'VIInat'); eq(T.funcionesDe('M', 'VIMa'), [{ f: 'S', cert: 's' }], 'VIMa');
 for (const m of ['M', 'm']) for (const esc of (m === 'M' ? ['mayor', 'mayorArm'] : ['menorArm', 'menorNat', 'menorMel'])) for (let g = 1; g <= 7; g++) {
   const e = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][g - 1] + { mayor: '', mayorArm: 'Ma', menorArm: '', menorNat: 'nat', menorMel: 'mel' }[esc]; ok(T.funcionesDe(m, e).length >= 1, `${e} (${m}) tiene función`); }
+suite('Disposición de las estructuras (tema 5)');
+{ const voz = (f, base, sus, tens, opt) => T.vozEstructura({ fund: nota(f), base, sus, tens }, opt);
+  const v = voz('do', '7', 0, ['b13']);
+  eq(v.notas.map(n => T.nom(n)).sort(), ['do', 'la♭', 'mi', 'si♭'], 'C7(♭13): la ♭13 sustituye a la quinta');
+  ok(!voz('do', '7', 0, ['13']).notas.some(n => T.nom(n) === 'sol'), 'C7 13: sin quinta');
+  ok(voz('si', 'm7b5', 0, ['b13']).notas.some(n => T.nom(n) === 'fa'), 'Bm7(♭5)(♭13): la quinta disminuida se conserva');
+  eq(voz('mi', '7', 0, ['b9'], { cascara: true }).rol.slice().sort(), ['3', '7', 'f', 't'], 'cáscara: fundamental, tercera, séptima y tensión');
+  // todas las estructuras: fundamental sola en el bajo (mi2–re♯3), las demás en el registro central y dentro de los LIL
+  let malas = [];
+  for (const f of ['do', 'do#', 'reb', 're', 'mib', 'mi', 'fa', 'fa#', 'solb', 'sol', 'lab', 'la', 'sib', 'si'])
+    for (const base of Object.keys(T.BASES)) for (const sus of [0, 2, 4]) for (const tens of [[], ['9'], ['b9'], ['#11'], ['13'], ['b13'], ['9', '13'], ['9', '#11', '13'], ['9', '11']]) {
+      if (sus === 2 && tens.includes('9')) continue;
+      const x = voz(f, base, sus, tens); if (!x) continue; const ms = x.notas.map(T.midi);
+      if (!(ms[0] >= 40 && ms[0] <= 51 && ms.slice(1).every(m => m >= 53 && m <= 84 && m > ms[0]) && T.cumpleLIL(ms) && x.rol[0] === 'f')) malas.push(f + base + sus + tens.join(','));
+    }
+  ok(malas.length === 0, `registro y LIL en todas las estructuras (${malas.slice(0, 5).join(' | ')})`);
+}
 fin();

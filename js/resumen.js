@@ -9,6 +9,8 @@ function fig(eventos,opt,sec,pie){ const k=RES_SEC.push(sec||null)-1;
 const nn=(...xs)=>xs.map(nota);
 const figInt=(a,b,pie)=>{ const x=nota(a), y=nota(b); return {notas:[x,y],abajo:[pie]}; };
 const figAc=(f,t,est,arriba)=>{ const a=acorde(nota(f),t); return {notas:disponer(a,est||0),arriba:arriba===undefined?cifrado(a,est||0):arriba}; };
+// estructura del tema 5 dispuesta para el sistema de piano, con su cifrado
+const figEst=(f,base,sus,tens)=>{ const e={fund:nota(f),base,sus,tens}; return {notas:vozEstructura(e).notas,arriba:cifradoEstructura(e).arr}; };
 const barras=ev=>ev.map((e,i)=>({...e,barra:i>0}));
 const secVarios=ev=>unir(...ev.flatMap(e=>[[{t:0,m:e.notas.map(midi),d:1.3,v:0.6}],0.15]));
 const tablaGrados=(esc,cuatro)=>`<tr><th scope="row">${Cap(ESCALAS[esc].nom)}</th>${[1,2,3,4,5,6,7].map(g=>{ const a=acordeDeGrado(nota('do'),esc,g,cuatro); return `<td>${esc_(TIPOS[a.tipo].gen)}<small>${esc_(cifrado(a))}</small></td>`; }).join('')}</tr>`;
@@ -20,11 +22,11 @@ const funcTabla=modo=>'<ul>'+['T','D','S'].map(f=>{ const g={s:[],u:[],c:[]}; Ob
 
 const RESUMEN={
 1:()=>`
-<p>Un <b>intervalo</b> es la distancia entre dos alturas: <i>armónico</i> si suenan a la vez, <i>melódico</i> si suenan una tras otra. Se nombra por el número de notas que abarca, contando la primera y la última (do–mi: do, re, mi → tercera), y se clasifica según los tonos y semitonos que contiene.</p>
+<p>Un <b>intervalo</b> es la distancia entre dos alturas: <i>armónico</i> si suenan a la vez, <i>melódico</i> si suenan una tras otra. Se nombra por el número de notas que abarca, contando la primera y la última (do–mi: do, re, mi → tercera), y se clasifica según los semitonos que contiene.</p>
 <h3>Cómo se calcula</h3>
-<ol><li><b>Número:</b> se cuentan los nombres de las notas, incluidas la primera y la última.</li><li><b>Calidad:</b> se cuentan los tonos (T) y semitonos entre ellas y se compara con la tabla.</li></ol>
+<ol><li><b>Número:</b> se cuentan los nombres de las notas, incluidas la primera y la última.</li><li><b>Calidad:</b> se cuentan los semitonos entre ellas y se compara con la tabla (en semitonos).</li></ol>
 <div class="tw"><table class="tg"><tr><td></td><th scope="col">disminuido</th><th scope="col">menor</th><th scope="col">justo</th><th scope="col">mayor</th><th scope="col">aumentado</th></tr>
-${[1,2,3,4,5,6,7,8].map(n=>`<tr><th scope="row">${Cap(I_NOM[n])}</th>${['-','m','j','M','+'].map(c=>{ const s=semisDe(n,c); return `<td>${s===null||s<0?'':tonosTxt(s)}</td>`; }).join('')}</tr>`).join('')}</table></div>
+${[1,2,3,4,5,6,7,8].map(n=>`<tr><th scope="row">${Cap(I_NOM[n])}</th>${['-','m','j','M','+'].map(c=>{ const s=semisDe(n,c); return `<td>${s===null||s<0?'':s}</td>`; }).join('')}</tr>`).join('')}</table></div>
 <p class="nota">Unísonos, cuartas, quintas y octavas son justos, aumentados o disminuidos; segundas, terceras, sextas y séptimas son mayores, menores, aumentadas o disminuidas. El unísono disminuido no es posible en la práctica.</p>
 ${fig(barras([figInt('do4','do5','8j'),figInt('do4','sol4','5j'),figInt('do4','fa4','4j'),figInt('do4','mi4','3M'),figInt('do4','mib4','3m'),figInt('do4','la4','6M'),figInt('do4','sib4','7m'),figInt('do4','fa#4','4+')]),{},secVarios([figInt('do4','do5'),figInt('do4','sol4'),figInt('do4','fa4'),figInt('do4','mi4'),figInt('do4','mib4'),figInt('do4','la4'),figInt('do4','sib4'),figInt('do4','fa#4')]),'Algunos intervalos desde do.')}
 <h3>Intervalos compuestos</h3>
@@ -63,11 +65,11 @@ ${fig(barras([figAc('sol','7',0),figAc('sol','7',1),figAc('sol','7',2),figAc('so
 
 5:()=>`
 <p>Las estructuras mayores que una tétrada se consideran tétradas con <b>tensiones</b>. En el cifrado, todo número mayor que la octava es una tensión y se escribe después de la tétrada, en superíndice.</p>
-<ul><li>El número solo indica intervalo <b>mayor o justo</b>: 9 (novena mayor), 11 (oncena justa), 13 (trecena mayor).</li><li><b>♯</b> y <b>♭</b> indican un semitono más o menos: ♭9, ♯9, ♯11, ♭13.</li><li>Si alguna tensión no es mayor ni justa, las tensiones van <b>entre paréntesis</b>.</li></ul>
-${fig(barras([{notas:notasEstructura({fund:nota('do'),base:'7',sus:0,tens:['9']}),arriba:'C7 9'},{notas:notasEstructura({fund:nota('do'),base:'7',sus:0,tens:['b9']}),arriba:'C7 (♭9)'},{notas:notasEstructura({fund:nota('do'),base:'maj7',sus:0,tens:['9','#11','13']}),arriba:'Cmaj7 (9 ♯11 13)'}]),{},null,'Novena mayor, novena menor y novena, oncena aumentada y trecena.')}
+<ul><li>El número solo indica intervalo <b>mayor o justo</b>: 9 (novena mayor), 11 (oncena justa), 13 (trecena mayor).</li><li><b>♯</b> y <b>♭</b> indican un semitono más o menos: ♭9, ♯9, ♯11, ♭13.</li><li>Si alguna tensión no es mayor ni justa, las tensiones van <b>entre paréntesis</b>.</li><li>La <b>13</b> o la <b>♭13</b> ocupa el lugar de la quinta justa: en el acorde suena una u otra, no las dos.</li></ul>
+${(()=>{ const ev=barras([figEst('do','7',0,['9']),figEst('do','7',0,['b9']),figEst('do','maj7',0,['9','#11','13'])]); return fig(ev,{gran:true},secVarios(ev),'Novena mayor; novena menor; novena, oncena aumentada y trecena (la 13 ocupa el lugar de la quinta).'); })()}
 <h3>Sexta, add y sus</h3>
 <ul><li><b>6:</b> la séptima se sustituye por una sexta mayor (C6). Admite tensiones como cualquier tétrada.</li><li><b>add:</b> hay tensiones pero ni séptima ni sexta (Cadd9).</li><li><b>sus4 / sus2:</b> la tercera se sustituye por la cuarta justa o la segunda mayor (Csus4, C7sus4, Cmaj7sus2). Las tensiones van al final.</li></ul>
-${fig(barras([{notas:notasEstructura({fund:nota('do'),base:'6',sus:0,tens:[]}),arriba:'C6'},{notas:notasEstructura({fund:nota('do'),base:'M',sus:0,tens:['9']}),arriba:'Cadd9'},{notas:notasEstructura({fund:nota('do'),base:'M',sus:4,tens:[]}),arriba:'Csus4'},{notas:notasEstructura({fund:nota('do'),base:'M',sus:2,tens:[]}),arriba:'Csus2'},{notas:notasEstructura({fund:nota('do'),base:'7',sus:4,tens:['9']}),arriba:'C7sus4 9'}]),{},null,'')}
+${(()=>{ const ev=barras([figEst('do','6',0,[]),figEst('do','M',0,['9']),figEst('do','M',4,[]),figEst('do','M',2,[]),figEst('do','7',4,['9'])]); return fig(ev,{gran:true},secVarios(ev),'C6, Cadd9, Csus4, Csus2 y C7sus4 con novena.'); })()}
 <p class="nota">Esquema: F · 3 (o sus2 / sus4) · 5 · 7 (o 6) ‖ 9 · 11 · 13 (con «add» si no hay 7 ni 6).</p>`,
 
 6:()=>`
@@ -75,12 +77,12 @@ ${fig(barras([{notas:notasEstructura({fund:nota('do'),base:'6',sus:0,tens:[]}),a
 <ul><li>Las notas de los extremos (fa y si) forman un <b>tritono</b>.</li><li>Entre la segunda y la séptima nota (si → do) está el <b>semitono característico del modo mayor</b>: asciende a la fundamental de la tónica mayor.</li><li>Entre la primera y la sexta (fa → mi) está el <b>semitono característico del modo menor</b>: desciende a la quinta de la tónica menor.</li></ul>
 <p>Cada campo da una tónica mayor y una menor (relativas). Como los dos semitonos son deseables, el campo se <b>deforma</b> para conseguir el que falta, y de ahí salen las escalas.</p>
 <h3>Escalas mayores</h3>
-${fig(escalaEscrita(nota('do'),'mayor').map(n=>({notas:[n],sep:1.7})),{},secEscala(escalaEscrita(nota('do'),'mayor')),'Mayor: T – T – S – T – T – T – S.')}
-${fig(escalaEscrita(nota('do'),'mayorArm').map(n=>({notas:[n],sep:1.7})),{},secEscala(escalaEscrita(nota('do'),'mayorArm')),'Mayor armónica: el VI desciende para obtener el semitono característico del modo menor.')}
+${fig(escalaEscrita(nota('do'),'mayor').map(n=>({notas:[n],sep:1.7})),{},secEscala(escalaEscrita(nota('do'),'mayor')),`Mayor. En semitonos: ${patron('mayor').join(' – ')}.`)}
+${fig(escalaEscrita(nota('do'),'mayorArm').map(n=>({notas:[n],sep:1.7})),{},secEscala(escalaEscrita(nota('do'),'mayorArm')),`Mayor armónica: el VI desciende para obtener el semitono característico del modo menor (${patron('mayorArm').join(' – ')}).`)}
 <h3>Escalas menores</h3>
-${fig(escalaEscrita(nota('la'),'menorNat').map(n=>({notas:[n],sep:1.7})),{},secEscala(escalaEscrita(nota('la'),'menorNat')),'Menor natural: la del campo diatónico sin deformar.')}
-${fig(escalaEscrita(nota('la'),'menorArm').map(n=>({notas:[n],sep:1.7})),{},secEscala(escalaEscrita(nota('la'),'menorArm')),'Menor armónica: el VII asciende para obtener la sensible.')}
-${fig(escalaEscrita(nota('la'),'menorMel').map(n=>({notas:[n],sep:1.7})),{},secEscala(escalaEscrita(nota('la'),'menorMel')),'Menor melódica: suben el VI y el VII, y así se evita la segunda aumentada.')}`,
+${fig(escalaEscrita(nota('la'),'menorNat').map(n=>({notas:[n],sep:1.7})),{},secEscala(escalaEscrita(nota('la'),'menorNat')),`Menor natural: la del campo diatónico sin deformar (${patron('menorNat').join(' – ')}).`)}
+${fig(escalaEscrita(nota('la'),'menorArm').map(n=>({notas:[n],sep:1.7})),{},secEscala(escalaEscrita(nota('la'),'menorArm')),`Menor armónica: el VII asciende para obtener la sensible (${patron('menorArm').join(' – ')}).`)}
+${fig(escalaEscrita(nota('la'),'menorMel').map(n=>({notas:[n],sep:1.7})),{},secEscala(escalaEscrita(nota('la'),'menorMel')),`Menor melódica: suben el VI y el VII, y así se evita la segunda aumentada (${patron('menorMel').join(' – ')}).`)}`,
 
 7:()=>`
 <p>Sobre cada grado de una escala se construyen tríadas y tétradas con las notas de la propia escala. La tonalidad mayor la forman la <b>escala mayor</b> y la <b>mayor armónica</b>.</p>

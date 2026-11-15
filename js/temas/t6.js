@@ -23,6 +23,11 @@ function pasosEscala(tonica,tipo){
     `La tercera ${g(3)[1]==='M'?'mayor indica una escala <b>mayor</b>':'menor indica una escala <b>menor</b>'}.`,
     `${Cap(ESC_RASGO[tipo])} → <b>escala ${ESCALAS[tipo].nom}</b>.`, `Semitonos entre grados consecutivos (del I a la octava): ${pt}.`];
 }
+// la escala mayor es la que más se oye fuera de clase: sale con menos peso que las demás para que las otras se practiquen
+const PESO_ESC={mayor:0.6,mayorArm:1,menorNat:1,menorArm:1,menorMel:1};
+function tipoEscala(R,tipos){ const tot=tipos.reduce((s,k)=>s+PESO_ESC[k],0); let x=R.f()*tot; for(const k of tipos){ x-=PESO_ESC[k]; if(x<0) return k; } return tipos[tipos.length-1]; }
+// en la solución, la escala se escribe con la armadura de su tonalidad
+const armTexto=(tonica,tipo,arm)=>`En la solución, la escala está escrita con la armadura de ${nomTonalidad(tonica,ESCALAS[tipo].modo)} (${armTxt(arm)}): las notas que la escala ${ESCALAS[tipo].nom} cambia llevan su alteración.`;
 const parTxt=(a,b,flecha)=>`${nom(a)} ${flecha?'→':'–'} ${nom(b)}`;
 
 /* ---------- Teoría ---------- */
@@ -52,17 +57,17 @@ registrar({id:'t6-campo',tema:6,modo:'teoria',titulo:'Tritono y semitonos caract
 
 registrar({id:'t6-escala',tema:6,modo:'teoria',titulo:'Identificar la escala',gen(R,nv){
   const pide=pideDoble(R,nv);
-  return intentar(()=>{ const tipo=R.pick(nv<=1?['mayor','menorNat','menorArm']:ESC_KEYS), tonica=tonicaDe(armAzar(R,nv),ESCALAS[tipo].modo), notas=escalaEscrita(tonica,tipo); if(maxAlt(notas)>topeAlt(nv)||(pide&&!hayDoble(notas))) return null;
-    return { enunciado:`¿Qué escala es esta, que empieza en <b>${nom(tonica)}</b>?`, vista:pent(notas.map(n=>({notas:[n],sep:1.7}))), sonar:secEscala(notas),
+  return intentar(()=>{ const tipo=tipoEscala(R,nv<=1?['mayor','menorNat','menorArm']:ESC_KEYS), arm=armAzar(R,nv), tonica=tonicaDe(arm,ESCALAS[tipo].modo), notas=escalaEscrita(tonica,tipo); if(maxAlt(notas)>topeAlt(nv)||(pide&&!hayDoble(notas))) return null;
+    return { enunciado:`¿Qué escala es esta, que empieza en <b>${nom(tonica)}</b>?`, vista:pent(notas.map(n=>({notas:[n],sep:1.7}))), vistaSol:pent(notas.map(n=>({notas:[n],sep:1.7})),{arm}), sonar:secEscala(notas),
       campos:[campo('tipo','Escala',ESC_KEYS.map(k=>op(k,Cap(ESCALAS[k].nom))))], sol:{tipo}, resumen:`${notas.slice(0,7).map(nom).join(' ')}: ${escNom(tonica,tipo)}.`,
-      explicar:r=>listaPasos(pasosEscala(tonica,tipo))+(r.tipo&&r.tipo!==tipo?`<p class="tu">Respondiste ${ESCALAS[r.tipo].nom}: desde ${nom(tonica)} sería ${escala(tonica,r.tipo).map(nom).join(' ')} (${ESC_RASGO[r.tipo].split(':')[0]}).</p>`:'') }; });
+      explicar:r=>listaPasos(pasosEscala(tonica,tipo).concat([armTexto(tonica,tipo,arm)]))+(r.tipo&&r.tipo!==tipo?`<p class="tu">Respondiste ${ESCALAS[r.tipo].nom}: desde ${nom(tonica)} sería ${escala(tonica,r.tipo).map(nom).join(' ')} (${ESC_RASGO[r.tipo].split(':')[0]}).</p>`:'') }; });
 }});
 
 registrar({id:'t6-grado',tema:6,modo:'teoria',titulo:'Construir la escala',gen(R,nv){
   const pide=pideDoble(R,nv);
-  return intentar(()=>{ const tipo=R.pick(nv<=1?['mayor','menorNat','menorArm']:ESC_KEYS), modo=ESCALAS[tipo].modo, arm=armAzar(R,nv), tonica=tonicaDe(arm,modo), sc=escala(tonica,tipo), g=R.chance(0.7)?R.pick([3,6,7]):2+R.int(6), x=sc[g-1];
+  return intentar(()=>{ const tipo=tipoEscala(R,nv<=1?['mayor','menorNat','menorArm']:ESC_KEYS), modo=ESCALAS[tipo].modo, arm=armAzar(R,nv), tonica=tonicaDe(arm,modo), sc=escala(tonica,tipo), g=R.chance(0.7)?R.pick([3,6,7]):2+R.int(6), x=sc[g-1];
     if(maxAlt(sc)>topeAlt(nv)||(pide&&!hayDoble([x]))) return null; const natural=escala(tonica,modo==='M'?'mayor':'menorNat'), cambia=!mismaNota(natural[g-1],x), notas=escalaEscrita(tonica,tipo);
-    return { enunciado:`En la escala de <b>${escNom(tonica,tipo)}</b>, ¿qué nota es el <b>${ROM[g-1]}</b> grado?`, vista:'', vistaSol:pent(notas.map((n,i)=>({notas:[n],sep:1.7,marca:i===g-1?true:undefined}))), sonar:secEscala(notas), sonarTras:true,
+    return { enunciado:`En la escala de <b>${escNom(tonica,tipo)}</b>, ¿qué nota es el <b>${ROM[g-1]}</b> grado?`, vista:'', vistaSol:pent(notas.map((n,i)=>({notas:[n],sep:1.7,marca:i===g-1?true:undefined})),{arm}), sonar:secEscala(notas), sonarTras:true,
       campos:[campoLetra(),campoAlt(topeAlt(nv))], sol:{letra:x.l,alt:x.a}, resumen:`${escNom(tonica,tipo)}: ${sc.map(nom).join(' ')}. El ${ROM[g-1]} es ${nom(x)}.`,
       explicar:()=>listaPasos([`${nomTonalidad(tonica,modo)} ${armFrase(arm)}. La escala ${modo==='M'?'mayor':'menor natural'}, que sale del campo diatónico sin deformar, es: ${natural.map(nom).join(' ')}.`,
         tipo==='mayor'||tipo==='menorNat'?'Es justamente la escala pedida: no cambia ninguna nota.':`La escala ${ESCALAS[tipo].nom} tiene ${ESC_RASGO[tipo].split(':')[0]}: ${sc.map((n,i)=>mismaNota(n,natural[i])?nom(n):`<b>${nom(n)}</b>`).join(' ')}.`,
@@ -71,9 +76,9 @@ registrar({id:'t6-grado',tema:6,modo:'teoria',titulo:'Construir la escala',gen(R
 
 /* ---------- Oído ---------- */
 registrar({id:'t6-oido',tema:6,modo:'oido',titulo:'Reconocer la escala',gen(R,nv){
-  return intentar(()=>{ const tipos=nv<=1?['mayor','menorNat']:nv===2?['mayor','menorNat','menorArm','menorMel']:ESC_KEYS, tipo=R.pick(tipos), tonica=tonicaDe(armAzar(R,1),ESCALAS[tipo].modo), notas=escalaEscrita(tonica,tipo); if(maxAlt(notas)>1) return null;
-    return { enunciado:'Escucha la escala ascendente. ¿De qué tipo es?', vista:'', vistaSol:pent(notas.map(n=>({notas:[n],sep:1.7}))), sonar:secEscala(notas), sonarResp:r=>r.tipo?secEscala(escalaEscrita(tonica,r.tipo)):null,
+  return intentar(()=>{ const tipos=nv<=1?['mayor','menorNat','menorArm']:nv===2?['mayor','menorNat','menorArm','menorMel']:ESC_KEYS, tipo=tipoEscala(R,tipos), arm=armAzar(R,1), tonica=tonicaDe(arm,ESCALAS[tipo].modo), notas=escalaEscrita(tonica,tipo); if(maxAlt(notas)>1) return null;
+    return { enunciado:'Escucha la escala ascendente. ¿De qué tipo es?', vista:'', vistaSol:pent(notas.map(n=>({notas:[n],sep:1.7})),{arm}), sonar:secEscala(notas), sonarResp:r=>r.tipo?secEscala(escalaEscrita(tonica,r.tipo)):null,
       campos:[campo('tipo','Escala',tipos.map(k=>op(k,Cap(ESCALAS[k].nom))))], sol:{tipo}, resumen:`Sonó ${escNom(tonica,tipo)}: ${notas.slice(0,7).map(nom).join(' ')}.`,
       explicar:r=>par(`Sonó <b>${escNom(tonica,tipo)}</b>: ${notas.slice(0,7).map(nom).join(' ')}. Tiene ${ESC_RASGO[tipo]}.`,'Para oírlo: primero la tercera (mayor o menor decide el modo) y después el final de la escala, donde están la sexta y la séptima.')+
-        (r.tipo&&r.tipo!==tipo?`<p class="tu">Respondiste ${ESCALAS[r.tipo].nom}, que tiene ${ESC_RASGO[r.tipo].split(':')[0]}. Compara las dos con los botones de abajo.</p>`:'')+listaPasos(pasosEscala(tonica,tipo)) }; });
+        (r.tipo&&r.tipo!==tipo?`<p class="tu">Respondiste ${ESCALAS[r.tipo].nom}, que tiene ${ESC_RASGO[r.tipo].split(':')[0]}. Compara las dos con los botones de abajo.</p>`:'')+listaPasos(pasosEscala(tonica,tipo).concat([armTexto(tonica,tipo,arm)])) }; });
 }});

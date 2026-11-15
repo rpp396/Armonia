@@ -40,6 +40,7 @@ a{color:var(--accent)}
 .skip{position:absolute;left:16px;top:-80px;z-index:100;padding:10px 16px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none}
 .skip:focus{top:8px}
 .wrap{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.wrap>*,.card{min-width:0;max-width:100%}
 main:focus{outline:none}
 
 /* ---------- Cabecera y pie ---------- */
@@ -128,7 +129,7 @@ svg.pent{display:block;max-width:none;color:var(--ink)}
 /* ---------- Ejercicio ---------- */
 .tipo{font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
 .enun{font-size:19px;line-height:1.35;margin:0 0 6px;text-wrap:pretty}
-.enun sup,.opb sup,.fb sup{font-size:.72em}
+sup{font-size:.7em;line-height:0;vertical-align:.55em;margin-left:.08em;letter-spacing:.01em}
 .oir{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0}
 .pista{color:var(--muted);font-size:15px}
 .campos{display:flex;flex-direction:column;gap:12px;margin:14px 0}

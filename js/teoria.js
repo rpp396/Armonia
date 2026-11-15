@@ -38,7 +38,7 @@ function sumar(n,num,cal,dir=1){ const s=semisDe(num,cal); if(s===null) return n
   const ts=paso(n)+dir*(num-1), l=((ts%7)+7)%7, o=Math.floor(ts/7), a=midi(n)+dir*s-(12*(o+1)+PC[l]);
   return Math.abs(a)>2?null:N(l,a,o); }
 function invertir(num,cal){ return {num:9-num,cal:{j:'j',M:'m',m:'M','+':'-','-':'+'}[cal]}; }
-// Las explicaciones de corrección miden en semitonos (lo pidió el usuario); tonosTxt queda para el resumen, como en los apuntes.
+// Todas las distancias se miden en semitonos (lo pidió el usuario). tonosTxt ya no se usa en la app; queda por si se vuelve a los tonos de los apuntes.
 const semTxt=s=>(s<0?'−':'')+Math.abs(s)+(Math.abs(s)===1?' semitono':' semitonos');
 function tonosTxt(s){ const neg=s<0; s=Math.abs(s); const n=Math.floor(s/2), h=s%2; return (neg?'−':'')+(h?(n?n+'½':'½'):String(n))+' T'; }
 const tablaCal=num=>(esJusto(num)?['-','j','+']:['-','m','M','+']).map(c=>({cal:c,semis:semisDe(num,c)}));
@@ -149,10 +149,37 @@ function notasEstructura(e){ const f=N(e.fund.l,e.fund.a,e.fund.l<=2?4:3), out=[
 function cifradoEstructura(e){
   const triada=e.base==='M'||e.base==='m', t=ordenTens(e.tens), par=t.some(x=>x.includes('b')||x.includes('#'));
   let base=cif(e.fund)+BASES[e.base].cif+(e.sus?'sus'+e.sus:'');
-  if(!t.length) return {txt:base,html:esc(base)};
+  if(!t.length) return {txt:base,html:esc(base),arr:base};
   const lista=t.map(tensTxt).join(' ');
-  if(triada) return {txt:base+'add'+lista.replace(/ /g,' add'),html:esc(base+'add'+lista.replace(/ /g,' add'))};
-  const sup=par?`(${lista})`:lista; return {txt:base+' '+sup,html:esc(base)+'<sup>'+esc(sup)+'</sup>'};
+  if(triada){ const x=base+'add'+lista.replace(/ /g,' add'); return {txt:x,html:esc(x),arr:x}; }
+  const sup=par?`(${lista})`:lista; return {txt:base+' '+sup,html:esc(base)+'<sup>'+esc(sup)+'</sup>',arr:{t:base,sup}};
+}
+// Low Interval Limits (Berklee): para cada intervalo entre dos voces vecinas, la nota grave más baja admitida (midi).
+// 2m mi3 · 2M mi♭3 · 3m do3 · 3M si♭2 · 4j si♭2 · 4+ si2 · 5j si♭1 · 6m sol2 · 6M fa2 · 7m fa2 · 7M fa2 · 9m mi3 · 9M mi♭2
+const LIL={1:52,2:51,3:48,4:46,5:46,6:47,7:34,8:43,9:41,10:41,11:41,13:52,14:39};
+const cumpleLIL=ms=>ms.every((m,i)=>i===0||!(LIL[ms[i]-ms[i-1]]>ms[i-1]));
+const enOctava=(n,m)=>N(n.l,n.a,n.o+Math.round((m-midi(n))/12));
+// La 13 (o ♭13) ocupa el lugar de la quinta justa: no suenan las dos.
+const sinQuinta=e=>e.tens.some(t=>TENS[t][0]===13)&&BASES[e.base].iv[1][1]==='j';
+// Disposición para escribir en el sistema de piano y para sonar: la fundamental sola en el bajo (mi2–re♯3) y las demás notas
+// en posición cerrada (tensiones incluidas) en el registro central, respetando los LIL.
+// opt.cascara: solo fundamental, tercera (o sus) y séptima (o sexta), más las tensiones.
+// Devuelve {notas, rol}: rol 'f' fundamental, '3', '5', '7' (o la sexta), 't' tensión.
+function vozEstructura(e,opt={}){
+  const f=N(e.fund.l,e.fund.a,4), b=BASES[e.base], partes=[];
+  b.iv.forEach((iv,i)=>{ const x=i===0&&e.sus?(e.sus===2?[2,'M']:[4,'j']):iv; partes.push({n:sumar(f,x[0],x[1]),rol:['3','5','7'][i]}); });
+  const nucleo=partes.filter(p=>p.rol!=='5'||!(opt.cascara||sinQuinta(e))), tens=ordenTens(e.tens).map(t=>({n:sumar(f,...TENS[t]),rol:'t'}));
+  if([...nucleo,...tens].some(p=>!p.n)) return null;
+  let bajo=midi(f); while(bajo>51) bajo-=12; while(bajo<40) bajo+=12;
+  const arriba=[...nucleo,...tens].sort((x,y)=>(midi(x.n)-midi(f)+120)%12-(midi(y.n)-midi(f)+120)%12);
+  let mejor=null;
+  for(let r=0;r<arriba.length;r++){
+    const orden=arriba.slice(r).concat(arriba.slice(0,r)), ms=[]; let m=Math.max(53,bajo+7);
+    orden.forEach((p,i)=>{ if(i) m=ms[i-1]+1; while(((m-pcDe(p.n))%12+12)%12) m++; ms.push(m); });
+    const top=ms[ms.length-1], med=ms.reduce((a,c)=>a+c,0)/ms.length, ok=cumpleLIL([bajo,...ms]);
+    const nota=(ok?0:1000)+Math.abs(med-65)+(top-ms[0])*0.5+r+(top>79?(top-79)*4:0);
+    if(!mejor||nota<mejor.nota) mejor={nota,orden,ms}; }
+  return {notas:[enOctava(f,bajo),...mejor.orden.map((p,i)=>enOctava(p.n,mejor.ms[i]))],rol:['f',...mejor.orden.map(p=>p.rol)]};
 }
 
 /* ---------- Tonalidades, campo diatónico y escalas ---------- */
