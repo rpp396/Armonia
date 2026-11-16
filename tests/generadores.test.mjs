@@ -49,6 +49,8 @@ for (const g of EJ) {
     for (const v of [e.vista, e.vistaSol]) if (v) falla(v.startsWith('<svg') && !roto(v.replace(/aria-label="[^"]*"/, '')), `${donde}: partitura`);
     if (g.modo === 'oido') falla(secOK(e.sonar), `${donde}: el ejercicio de oído suena`); else if (e.sonar) falla(secOK(e.sonar), `${donde}: sonido`);
     if (e.ref) falla(secOK(e.ref.tonica) && secOK(e.ref.cadencia), `${donde}: la tónica y la cadencia de referencia suenan`);
+    if (e.ref) { const fin = s => Math.max(...s.map(x => x.t + x.d)), tope = /grado$/.test(g.id) ? 3 : 7;
+      falla(fin(e.sonar) <= tope, `${donde}: el ejercicio suena sin la cadencia delante (dura ${fin(e.sonar).toFixed(1)} s)`); }
     if (/^t[789]-oido(-grado|-progresion)?$/.test(g.id)) falla(!!e.ref, `${donde}: el ejercicio con cadencia trae las referencias`);
     if (g.modo === 'oido') falla(!e.vista, `${donde}: el ejercicio de oído no enseña la partitura antes de responder`);
   }

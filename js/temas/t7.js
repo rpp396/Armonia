@@ -16,7 +16,7 @@ function gradosOido(tonica,modo,nv){
 }
 const SEC_CAD=0.95;
 const secCadencia=(tonica,modo)=>secProgresion(vocesProgresion(cadencia(tonica,modo)),SEC_CAD);
-// referencias que el alumno puede oír aparte antes del ejercicio: el acorde de tónica solo y la cadencia
+// referencias que el alumno puede oír aparte, si quiere: el acorde de tónica solo y la cadencia. El ejercicio (`sonar`) no las incluye, para que sea corto
 const secTonica=(tonica,modo)=>secProgresion([vozAcorde(cadencia(tonica,modo)[0])],2.2);
 const refTonal=(tonica,modo)=>({tonica:secTonica(tonica,modo),cadencia:secCadencia(tonica,modo)});
 const pentGrados=(lista_,arm)=>pent(lista_.map((x,i)=>({notas:disponer(x.ac,0),arriba:cifrado(x.ac),abajo:[x.etiq],barra:i>0})),{arm});
@@ -84,8 +84,8 @@ function registrarGrados(tema,modo){
 
   /* ----- Oído ----- */
   registrar({id:pref+'-oido-grado',tema,modo:'oido',titulo:'Reconocer el grado',gen(R,nv){
-    const T=tonNivel(R,Math.min(nv,2),modo), set=gradosOido(T.tonica,modo,nv), x=R.pick(set), cad=secCadencia(T.tonica,modo), sec=a=>unir(cad,0.55,[{t:0,m:[vozAcorde(a).bajo],d:2.3,r:'bass',v:0.8},{t:0,m:vozAcorde(a).voces,d:2.3,r:'chord'}]);
-    return { enunciado:`Primero suena la cadencia I–IV–V–I de <b>${nomTonalidad(T.tonica,modo)}</b> y, tras una pausa, un acorde. ¿Qué grado es?`, vista:'', vistaSol:pentGrados([x],T.arm), sonar:sec(x.ac), ref:refTonal(T.tonica,modo),
+    const T=tonNivel(R,Math.min(nv,2),modo), set=gradosOido(T.tonica,modo,nv), x=R.pick(set), sec=a=>[{t:0,m:[vozAcorde(a).bajo],d:2.3,r:'bass',v:0.8},{t:0,m:vozAcorde(a).voces,d:2.3,r:'chord'}];
+    return { enunciado:`Suena un acorde de <b>${nomTonalidad(T.tonica,modo)}</b>. ¿Qué grado es? Antes puedes oír el acorde de tónica o la cadencia de referencia.`, vista:'', vistaSol:pentGrados([x],T.arm), sonar:sec(x.ac), ref:refTonal(T.tonica,modo),
       sonarResp:r=>{ const y=set.find(s=>s.etiq===r.grado); return y?sec(y.ac):null; },
       campos:[campo('grado','Grado',set.map(s=>op(s.etiq,`${esc(s.etiq)} · ${esc(TIPOS[s.ac.tipo].gen)}`)))], sol:{grado:x.etiq}, resumen:`Sonó ${cifrado(x.ac)}: el ${x.etiq} de ${nomTonalidad(T.tonica,modo)}.`,
       explicar:r=>{ const y=set.find(s=>s.etiq===r.grado);
@@ -97,9 +97,9 @@ function registrarGrados(tema,modo){
   registrar({id:pref+'-oido-progresion',tema,modo:'oido',titulo:'Dictado de progresión',gen(R,nv){
     const T=tonNivel(R,Math.min(nv,2),modo), set=gradosOido(T.tonica,modo,nv), prog=[set[0]];
     while(prog.length<4){ const c=R.pick(set); if(c!==prog[prog.length-1]) prog.push(c); }
-    const sec=p=>unir(secCadencia(T.tonica,modo),0.7,secProgresion(vocesProgresion(p.map(c=>c.ac)),1.5));
+    const sec=p=>secProgresion(vocesProgresion(p.map(c=>c.ac)),1.5);
     const campos=[1,2,3].map(i=>campo('g'+i,`Acorde ${i+1}`,set.map(s=>op(s.etiq)))), sol={}; [1,2,3].forEach(i=>{ sol['g'+i]=prog[i].etiq; });
-    return { enunciado:`Suena la cadencia de <b>${nomTonalidad(T.tonica,modo)}</b> y, tras una pausa, una progresión de cuatro acordes que empieza en el <b>I</b>. ¿Qué grados son los otros tres?`, vista:'', vistaSol:pentGrados(prog,T.arm), sonar:sec(prog), ref:refTonal(T.tonica,modo),
+    return { enunciado:`En <b>${nomTonalidad(T.tonica,modo)}</b> suena una progresión de cuatro acordes que empieza en el <b>I</b>. ¿Qué grados son los otros tres? Antes puedes oír el acorde de tónica o la cadencia de referencia.`, vista:'', vistaSol:pentGrados(prog,T.arm), sonar:sec(prog), ref:refTonal(T.tonica,modo),
       sonarResp:r=>{ const p=[prog[0]].concat([1,2,3].map(i=>set.find(s=>s.etiq===r['g'+i]))); return p.every(Boolean)?sec(p):null; },
       campos, sol, resumen:`La progresión era ${prog.map(c=>c.etiq).join(' – ')} (${prog.map(c=>cifrado(c.ac)).join(' – ')}).`,
       explicar:r=>par(`La progresión era <b>${prog.map(c=>c.etiq).join(' – ')}</b>: ${prog.map(c=>cifrado(c.ac)).join(' – ')}.`,
