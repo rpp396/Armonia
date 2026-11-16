@@ -153,7 +153,8 @@ function bind(){
   $('#app').addEventListener('keydown',ev=>{ const t=ev.target.closest('[role="tab"]'); if(!t) return; const i=TABS.findIndex(x=>x[0]===t.dataset.tab);
     const j=ev.key==='ArrowRight'?(i+1)%3:ev.key==='ArrowLeft'?(i+2)%3:ev.key==='Home'?0:ev.key==='End'?2:-1; if(j<0) return; ev.preventDefault(); location.hash=`#/tema/${V.tema}/${TABS[j][0]}`; setTimeout(()=>{ const n=$('#tab-'+TABS[j][0]); if(n) n.focus(); },0); });
   // atajos: E escuchar, T tónica, C cadencia, 1–9 elegir opción, Intro comprobar o pasar al siguiente (si el foco no está en un control)
-  document.addEventListener('keydown',ev=>{ if(ev.ctrlKey||ev.metaKey||ev.altKey||!V.ej||V.tab==='resumen'||V.tema===null) return; const tag=ev.target.tagName;
+  // con un diálogo abierto (la bienvenida) no actúan sobre el ejercicio de detrás
+  document.addEventListener('keydown',ev=>{ if(ev.ctrlKey||ev.metaKey||ev.altKey||!V.ej||V.tab==='resumen'||V.tema===null||$('dialog[open]')) return; const tag=ev.target.tagName;
     if(tag==='SELECT'||tag==='INPUT'||tag==='TEXTAREA') return;
     const ref={e:'ej',t:'tonica',c:'cadencia'}[ev.key.toLowerCase()];
     if(ref&&ev.key.length===1){ const b=$(`#ej [data-oir="${ref}"]`); if(b){ ev.preventDefault(); oir(ref,b); } }
@@ -165,11 +166,13 @@ function bind(){
   $('#bImp').addEventListener('click',()=>{ $('#fImp').value=''; $('#fImp').click(); });
   $('#fImp').addEventListener('change',ev=>{ const f=ev.target.files&&ev.target.files[0]; if(f) leerImport(f); });
   $('#bImpSi').addEventListener('click',()=>{ const d=V.importar; V.importar=null; $('#importarAsk').hidden=true; if(!d) return;
-    store={set:d.set,prog:d.prog}; save(); $('#snd').value=store.set.snd; V.sesion={n:0,ok:0}; render(); avisoIO('Progreso importado.'); $('#bImp').focus(); });
+    // la marca de la bienvenida vista no se pierde al importar un archivo que no la tiene
+    store={set:{...d.set,...(store.set.visto?{visto:true}:{})},prog:d.prog}; save(); $('#snd').value=store.set.snd; V.sesion={n:0,ok:0}; render(); avisoIO('Progreso importado.'); $('#bImp').focus(); });
   $('#bImpNo').addEventListener('click',()=>{ V.importar=null; $('#importarAsk').hidden=true; avisoIO('Importación cancelada.'); $('#bImp').focus(); });
   $('#bBorrar').addEventListener('click',()=>{ $('#borrarAsk').hidden=false; $('#bBorrarNo').focus(); });
   $('#bBorrarNo').addEventListener('click',()=>{ $('#borrarAsk').hidden=true; $('#bBorrar').focus(); });
-  $('#bBorrarSi').addEventListener('click',()=>{ store.prog={}; save(); V.sesion={n:0,ok:0}; $('#borrarAsk').hidden=true; render(); say('Progreso borrado.'); $('#bBorrar').focus(); });
+  // borra el progreso, no los ajustes; marca la bienvenida como vista para que no vuelva a salir sola con el progreso vacío
+  $('#bBorrarSi').addEventListener('click',()=>{ store.prog={}; store.set.visto=true; save(); V.sesion={n:0,ok:0}; $('#borrarAsk').hidden=true; render(); say('Progreso borrado.'); $('#bBorrar').focus(); });
 }
 
 /* ---------- Exportar e importar el progreso ---------- */

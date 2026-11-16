@@ -19,7 +19,7 @@ for (const f of js.filter(x => !/glifos/.test(x))) ok(!/style="/.test(lee(f)), `
 for (const m of css.matchAll(/url\(([^)]+)\)/g)) ok(fs.existsSync(path.join(ROOT, m[1])), `existe ${m[1]}`);
 
 suite('Datos guardados');
-const { cleanSet, cleanProg } = cargar(['cleanSet', 'cleanProg'], ['js/datos.js']);
+const { cleanSet, cleanProg, has } = cargar(['cleanSet', 'cleanProg', 'has'], ['js/datos.js']);
 eq(cleanSet(null), { snd: 'piano', nivel: {}, tipo: {} }, 'ajustes por defecto');
 eq(cleanSet({ snd: '<x>', nivel: { 1: 3, 2: 9, x: 1 }, tipo: { '1-teoria': 't1-construir', 'x': 'y', '2-oido': 5 } }), { snd: 'piano', nivel: { 1: 3, 2: 3 }, tipo: { '1-teoria': 't1-construir' } }, 'los ajustes extraños se descartan');
 eq(cleanProg({ 't1-oido': { n: 5, ok: 9, racha: 2, mejor: 3 }, '__proto__': { n: 1 }, 'malo': { n: 1 }, 't2-tipo': 'x', 't3-tipo': { n: -1, ok: 'a' } }),
@@ -32,6 +32,28 @@ eq(cleanProg({ 't1-oido': { n: 1, ok: 1, niv: { 1: { n: -3, ok: 'a' }, 2: { n: 1
 eq(cleanProg({ 't1-oido': { n: 1, ok: 1, niv: [1, 2] } }), { 't1-oido': { n: 1, ok: 1, racha: 0, mejor: 0 } }, 'un niv que no es objeto se ignora');
 eq(cleanProg({ 't1-oido': { n: 1, ok: 1, niv: {} } }), { 't1-oido': { n: 1, ok: 1, racha: 0, mejor: 0 } }, 'sin niveles no queda niv');
 eq(cleanProg({ 't1-oido': { n: 4, ok: 1, racha: 0, mejor: 1 } })['t1-oido'].niv, undefined, 'lo antiguo, sin desglose, se conserva tal cual');
+
+// visto: la bienvenida ya se vio; solo cuenta true estricto
+eq(cleanSet({ visto: true }).visto, true, 'visto: true se conserva');
+for (const v of [false, 'true', 1, null, {}, [true]]) eq(has(cleanSet({ visto: v }), 'visto'), false, `visto: ${JSON.stringify(v)} se descarta`);
+eq(cleanSet({ snd: 'organ', visto: true }), { snd: 'organ', nivel: {}, tipo: {}, visto: true }, 'visto convive con los demás ajustes');
+
+suite('Bienvenida');
+const { debeMostrarBienvenida: dmb } = cargar(['debeMostrarBienvenida'], ['js/datos.js']);
+const vacio = { set: cleanSet(null), prog: {} };
+eq(dmb(vacio, ''), true, 'primera visita: sale');
+eq(dmb({ set: cleanSet({ visto: true }), prog: {} }, ''), false, 'con la marca no sale');
+eq(dmb({ set: cleanSet(null), prog: { 't1-oido': { n: 1, ok: 1, racha: 1, mejor: 1 } } }, ''), false, 'con progreso previo y sin marca no sale');
+eq(dmb(vacio, '?semilla=1'), false, 'con ?semilla= no sale');
+eq(dmb(vacio, '?x=2&semilla=12'), false, 'con &semilla= tampoco');
+eq(dmb(vacio, '?semilla=abc'), true, 'una semilla no numérica no cuenta (como semillaURL)');
+eq(dmb({ set: { visto: 'true' }, prog: {} }, ''), true, 'solo visto === true cuenta');
+const bv = lee('js/bienvenida.js');
+ok(js.indexOf('js/bienvenida.js') === js.length - 2, 'bienvenida.js se carga justo antes de inicio.js');
+ok(/<dialog[^>]*id="bienv"[^>]*aria-labelledby="bvT1"/.test(html) && [1, 2, 3, 4].every(i => new RegExp(`id="bvT${i}" tabindex="-1"`).test(html)), 'el diálogo tiene título por paso, enfocable');
+ok(/id="bAyuda"/.test(html) && /abrirBienvenida/.test(bv) && /debeMostrarBienvenida\(store,location\.search\)/.test(lee('js/inicio.js')), 'se reabre desde el pie y sale sola según debeMostrarBienvenida');
+ok(/\$\('dialog\[open\]'\)/.test(lee('js/interfaz.js')), 'los atajos globales no actúan con el diálogo abierto');
+ok(!/\.style\./.test(bv), 'bienvenida.js no toca estilos en línea');
 
 suite('Sin conexión e instalable');
 const sw = lee('sw.js'), lista = [...sw.match(/const ARCHIVOS=\[([^\]]*)\]/)[1].matchAll(/'([^']+)'/g)].map(m => m[1]);

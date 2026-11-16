@@ -176,11 +176,31 @@ sup{font-size:.7em;line-height:0;vertical-align:.55em;margin-left:.08em;letter-s
 .tu{border-left:3px solid var(--bad);background:var(--bad-soft);padding:8px 12px;border-radius:0 8px 8px 0;margin:10px 0}
 span.tu{border:0;padding:1px 6px;border-radius:6px;margin:0}
 
+/* ---------- Bienvenida (dialog modal) ---------- */
+.bienv{width:min(36rem,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;margin:auto;padding:20px 22px;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 24px 60px -24px rgba(14,16,21,.45)}
+.bienv::backdrop{background:rgba(14,16,21,.55)}
+.bienv p{margin:8px 0}
+.bienv .tn{margin:0}
+.bvt{font-family:var(--serif);font-weight:400;font-size:clamp(22px,3.4vw,26px);line-height:1.2;margin:4px 0 10px}
+.bvt:focus{outline:none}
+.bvdl{margin:8px 0 14px}
+.bvdl dt{font-weight:700;margin-top:8px}
+.bvdl dd{margin:0}
+.bvniv{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 4px}
+.bvniv>span:last-child{display:flex;flex-wrap:wrap;gap:8px}
+.bvatajos{list-style:none;padding:0;margin:10px 0;display:flex;flex-direction:column;gap:6px}
+.bvsnd{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px}
+.bvsnd label{font-weight:700}
+.bvsnd select{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:8px 10px;min-height:44px}
+.bvnav{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.bvder{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+
 @media (max-width:520px){
   body{font-size:16px}
   .card{padding:16px 14px}
   .enun{font-size:18px}
   .opb{flex:1 1 auto}
   .tabs button{flex:1;padding:10px 6px}
+  .bienv{padding:16px 14px}
 }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important} }

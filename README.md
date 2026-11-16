@@ -30,6 +30,7 @@ Abre `index.html` en el navegador. Necesita a su lado `styles.css` y las carpeta
 - **Progreso** por tema y por tipo de ejercicio; el porcentaje de cada tipo es el del nivel elegido.
 - **Dictados con cadencia** (temas 7 a 9): se pueden escuchar más despacio y solo con el bajo.
 - **Sonido** sintetizado en el propio navegador (piano, piano eléctrico, guitarra, órgano o cuerdas).
+- **Bienvenida:** la primera vez, una guía de cuatro pasos explica cómo funciona y deja elegidos el nivel y el sonido; se vuelve a abrir con «Cómo funciona», al pie.
 - **Accesible y privada:** se usa entera con teclado y lector de pantalla, y no hace ninguna petición a otros sitios.
 
 Atajos: `E` escuchar · `T` tónica · `C` cadencia (en los dictados) · `1`–`9` elegir opción · `Intro` comprobar y pasar al siguiente.

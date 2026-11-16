@@ -47,6 +47,8 @@ function cleanSet(s){
   o.snd=oneOf(s.snd,SONIDOS.map(x=>x[0]),'piano');
   if(isObj(s.nivel)) for(let n=1;n<=9;n++) if(has(s.nivel,n)) o.nivel[n]=intIn(s.nivel[n],1,3,3);
   if(isObj(s.tipo)) for(const k of Object.keys(s.tipo).slice(0,40)) if(/^[1-9]-(teoria|oido)$/.test(k)&&typeof s.tipo[k]==='string'&&s.tipo[k].length<40) o.tipo[k]=s.tipo[k];
+  // visto: ya se vio (o se omitió) la bienvenida; solo cuenta true, y si no, no se guarda
+  if(s.visto===true) o.visto=true;
   return o;
 }
 // progreso por generador: {n: intentos, ok: aciertos, racha, mejor, niv?: {1|2|3: {n, ok}}}. `niv` es el desglose por nivel;
@@ -64,3 +66,5 @@ function load(){ try{ const raw=localStorage.getItem(KEY); if(raw){ const d=JSON
 function save(){ try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){} }
 // sin nivel elegido, el tema empieza en avanzado
 function nivelDe(tema){ return store.set.nivel[tema]||3; }
+// la bienvenida sale sola solo la primera vez: sin la marca, sin progreso guardado y sin ?semilla= (pruebas reproducibles)
+const debeMostrarBienvenida=(st,search)=>!(st&&st.set&&st.set.visto===true)&&!(st&&isObj(st.prog)&&Object.keys(st.prog).length)&&!/[?&]semilla=\d+/.test(search||'');
