@@ -22,3 +22,9 @@ function secAcorde(notas,arp=true){
 function secEscala(notas){ return notas.map((n,i)=>({t:i*0.4,m:[midi(n)],d:i===notas.length-1?1.1:0.44})); }
 // progresión: cada acorde es {bajo: midi, voces: [midi…]}
 function secProgresion(acordes,dur=1.35){ return acordes.flatMap((a,i)=>[{t:i*dur,m:[a.bajo],d:dur*0.96,r:'bass',v:0.8},{t:i*dur,m:a.voces,d:dur*0.96,r:'chord'}]); }
+
+/* ---------- Ayudas de escucha (funciones puras; devuelven una secuencia nueva) ---------- */
+// más despacio: multiplica el momento y la duración de cada evento por `factor` (1,5 por defecto)
+const ralentizar=(sec,factor=1.5)=>sec.map(e=>({...e,t:e.t*factor,d:e.d*factor}));
+// solo el bajo: deja únicamente los eventos marcados con r:'bass'
+const soloBajo=sec=>sec.filter(e=>e.r==='bass');

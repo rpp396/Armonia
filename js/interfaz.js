@@ -3,7 +3,7 @@
 'use strict';
 
 /* ---------- Estado de la vista ---------- */
-const V={tema:null,tab:'resumen',gen:null,ej:null,resp:{},corr:null,sonando:null,sesion:{n:0,ok:0},vistos:[]};
+const V={tema:null,tab:'resumen',gen:null,ej:null,resp:{},corr:null,sonando:null,sesion:{n:0,ok:0},vistos:[],nv:3,lento:false,bajo:false,importar:null};
 const TABS=[['resumen','Resumen'],['teoria','Teoría'],['oido','Oído']];
 const semillaURL=()=>{ const m=/[?&]semilla=(\d+)/.exec(location.search); return m?+m[1]:null; };
 let semillaN=0;
@@ -12,7 +12,10 @@ function ruta(){ const m=/^#\/tema\/([1-9])(?:\/(resumen|teoria|oido))?$/.exec(l
 /* ---------- Progreso ---------- */
 function progTema(n){ let t=0, ok=0; for(const e of EJ) if(e.tema===n&&store.prog[e.id]){ t+=store.prog[e.id].n; ok+=store.prog[e.id].ok; } return {n:t,ok}; }
 const pct=p=>p.n?Math.round(100*p.ok/p.n):0;
-function anotar(id,bien){ const p=store.prog[id]||(store.prog[id]={n:0,ok:0,racha:0,mejor:0}); p.n++; if(bien){ p.ok++; p.racha++; p.mejor=Math.max(p.mejor,p.racha); } else p.racha=0; save(); }
+// nv: el nivel con el que se generó el ejercicio; además del total, se anota en el desglose por nivel
+function anotar(id,bien,nv){ const p=store.prog[id]||(store.prog[id]={n:0,ok:0,racha:0,mejor:0}); p.n++; if(bien){ p.ok++; p.racha++; p.mejor=Math.max(p.mejor,p.racha); } else p.racha=0;
+  const l=intIn(nv,1,3,0); if(l){ const v=(p.niv||(p.niv={}))[l]||(p.niv[l]={n:0,ok:0}); v.n++; if(bien) v.ok++; } save(); }
+const progNivel=(id,nv)=>{ const p=store.prog[id]; return p&&p.niv&&p.niv[nv]?p.niv[nv]:{n:0,ok:0}; };
 
 /* ---------- Portada ---------- */
 function renderPortada(){
@@ -42,10 +45,18 @@ function renderPanel(){
   const gens=ejerciciosDe(V.tema,V.tab), k=V.tema+'-'+V.tab, sel=gens.some(g=>g.id===store.set.tipo[k])?store.set.tipo[k]:'mix';
   $('#panel').innerHTML=`<div class="chips" role="group" aria-label="Tipo de ejercicio">
       ${gens.length>1?`<button type="button" class="chip" data-gen="mix" aria-pressed="${sel==='mix'}">Variado</button>`:''}
-      ${gens.map(g=>{ const p=store.prog[g.id]; return `<button type="button" class="chip" data-gen="${g.id}" aria-pressed="${sel===g.id||gens.length===1}">${esc(g.titulo)}${p&&p.n?` <small>${pct(p)} %</small>`:''}</button>`; }).join('')}</div>
+      ${gens.map(g=>`<button type="button" class="chip" data-gen="${g.id}" aria-pressed="${sel===g.id||gens.length===1}">${esc(g.titulo)}<small></small></button>`).join('')}
+      <span class="pista" id="chipNota"></span></div>
     <article class="card ej" id="ej" aria-live="off"></article>
     <p class="marcador" id="marcador"></p>`;
-  nuevo();
+  chipsPct(); nuevo();
+}
+// el porcentaje de cada chip es el del nivel elegido (la portada suma los tres niveles)
+function chipsPct(){
+  const nv=nivelDe(V.tema), nom=NIVELES[nv-1][1].toLowerCase();
+  $$('.chip[data-gen]').forEach(b=>{ const sm=$('small',b); if(!sm) return; const p=progNivel(b.dataset.gen,nv);
+    sm.textContent=p.n?pct(p)+' %':''; if(p.n) sm.setAttribute('aria-label',`${pct(p)} % de aciertos en nivel ${nom}`); else sm.removeAttribute('aria-label'); });
+  const n=$('#chipNota'); if(n) n.textContent=`Porcentaje de aciertos en nivel ${nom}.`;
 }
 function genActual(){ const gens=ejerciciosDe(V.tema,V.tab), k=V.tema+'-'+V.tab, sel=store.set.tipo[k]; return gens.find(g=>g.id===sel)||gens[Math.floor(Math.random()*gens.length)]; }
 
@@ -56,14 +67,14 @@ function nuevo(){
   for(let i=0;i<12;i++){ const seed=base!==null?base+(semillaN++):(Math.random()*4294967296)>>>0;
     ej=g.gen(crearRng(seed),nv); firma=g.id+'|'+ej.enunciado+'|'+JSON.stringify(ej.sol); if(base!==null||!V.vistos.includes(firma)) break; }
   V.vistos.push(firma); if(V.vistos.length>8) V.vistos.shift();
-  V.gen=g; V.ej=ej; V.resp={}; V.corr=null; V.ej.campos.forEach(c=>{ if(c.multi) V.resp[c.id]=[]; });
+  V.gen=g; V.ej=ej; V.nv=nv; V.resp={}; V.corr=null; V.ej.campos.forEach(c=>{ if(c.multi) V.resp[c.id]=[]; });
   renderEj(); marcador();
 }
 function renderEj(){
   const e=V.ej, hecho=!!V.corr, oir=e.sonar&&(!e.sonarTras||hecho);
   $('#ej').innerHTML=`<p class="tipo">${esc(V.gen.titulo)}</p><p class="enun" id="enun">${e.enunciado}</p>
     ${e.vista?`<div class="vista">${e.vista}</div>`:''}
-    ${oir&&e.ref?`<p class="oir"><button type="button" class="btn ref" data-oir="tonica">${icono('play')}<span>Acorde de tónica</span></button><button type="button" class="btn ref" data-oir="cadencia">${icono('play')}<span>Cadencia de referencia</span></button><button type="button" class="btn play" data-oir="ej">${icono('play')}<span>Escuchar el ejercicio</span></button><span class="pista">La tónica y la cadencia sirven de referencia. Puedes escuchar cada cosa las veces que quieras.</span></p>`
+    ${oir&&e.ref?`<p class="oir"><button type="button" class="btn ref" data-oir="tonica">${icono('play')}<span>Acorde de tónica</span></button><button type="button" class="btn ref" data-oir="cadencia">${icono('play')}<span>Cadencia de referencia</span></button><button type="button" class="btn play" data-oir="ej">${icono('play')}<span>Escuchar el ejercicio</span></button>${conmutadores()}<span class="pista">La tónica y la cadencia sirven de referencia. Puedes escuchar cada cosa las veces que quieras.</span></p>`
       :oir?`<p class="oir"><button type="button" class="btn play" data-oir="ej">${icono('play')}<span>${V.tab==='oido'?'Escuchar':'Oír'}</span></button>${V.tab==='oido'?'<span class="pista">Puedes escucharlo las veces que quieras.</span>':''}</p>`:''}
     <div class="campos">${e.campos.map(c=>`<fieldset class="campo" data-campo="${c.id}"${hecho?' disabled':''}><legend>${esc(c.etiqueta)}${c.multi?' <small>(varias)</small>':''}</legend><div class="ops">
       ${c.opciones.map(o=>{ const marcado=c.multi?V.resp[c.id].includes(o.v):V.resp[c.id]===o.v; let cls='';
@@ -72,13 +83,16 @@ function renderEj(){
     ${hecho?'':`<p class="acts"><button type="button" class="btn primary" id="bComprobar"${completo(e,V.resp)?'':' disabled'}>Comprobar</button><span class="pista" id="falta">${completo(e,V.resp)?'':'Elige una opción en cada apartado.'}</span></p>`}
     ${hecho?feedbackHTML():''}`;
 }
+// «Lento» y «Solo el bajo» (solo en los ejercicios con cadencia): valen para todo lo que suena; su estado vive en V
+const CONMUT=[['lento','Lento'],['bajo','Solo el bajo']];
+const conmutadores=()=>`<span class="togs" role="group" aria-label="Ayudas de escucha">${CONMUT.map(([k,x])=>`<button type="button" class="btn sm tog" data-opt="${k}" aria-pressed="${V[k]}">${x}</button>`).join('')}</span>`;
 function feedbackHTML(){
   const e=V.ej, ok=V.corr.ok, exp=e.explicar(V.resp), tieneResp=!ok&&e.sonarResp&&e.sonarResp(V.resp);
   return `<section class="fb ${ok?'ok':'mal'}" id="fb" tabindex="-1" aria-labelledby="ver">
     <h3 class="ver" id="ver">${icono(ok?'ok':'no')}${ok?'Correcto':'Incorrecto'}</h3>
     ${ok?`<p class="porque">${e.resumen}</p>`:`<p class="sol">Respuesta correcta — ${solucionHTML(e)}</p>`}
     ${e.vistaSol?`<div class="vista">${e.vistaSol}</div>`:''}
-    ${e.sonar&&(V.tab==='oido'||e.sonarTras)?`<p class="oir"><button type="button" class="btn sm play" data-oir="ej">${icono('play')}<span>Oír lo correcto</span></button>${tieneResp?` <button type="button" class="btn sm play" data-oir="resp">${icono('play')}<span>Oír lo que respondiste</span></button>`:''}</p>`:''}
+    ${e.sonar&&(V.tab==='oido'||e.sonarTras)?`<p class="oir"><button type="button" class="btn sm play" data-oir="ej">${icono('play')}<span>Oír lo correcto</span></button>${tieneResp?` <button type="button" class="btn sm play" data-oir="resp">${icono('play')}<span>Oír lo que respondiste</span></button>`:''}${e.ref?conmutadores():''}</p>`:''}
     ${ok?`<details class="exp"><summary>Ver la explicación</summary>${exp}</details>`:`<div class="exp"><h4>Explicación</h4>${exp}</div>`}
     <p class="acts"><button type="button" class="btn primary" id="bSig">Siguiente ejercicio</button></p></section>`;
 }
@@ -92,8 +106,8 @@ function elegir(campoId,v){
 }
 function comprobar(){
   if(V.corr||!completo(V.ej,V.resp)) return; detener(); V.sonando=null;
-  V.corr=corregir(V.ej,V.resp); V.sesion.n++; if(V.corr.ok) V.sesion.ok++; anotar(V.gen.id,V.corr.ok);
-  renderEj(); marcador(); const fb=$('#fb'); fb.focus({preventScroll:true}); fb.scrollIntoView({block:'nearest',behavior:smooth()});
+  V.corr=corregir(V.ej,V.resp); V.sesion.n++; if(V.corr.ok) V.sesion.ok++; anotar(V.gen.id,V.corr.ok,V.nv);
+  renderEj(); marcador(); chipsPct(); const fb=$('#fb'); fb.focus({preventScroll:true}); fb.scrollIntoView({block:'nearest',behavior:smooth()});
   say(V.corr.ok?'Correcto. '+textoPlano(V.ej.resumen):'Incorrecto. Respuesta correcta: '+textoPlano(solucionHTML(V.ej))+'. La explicación está debajo.');
 }
 const textoPlano=h=>{ const d=document.createElement('div'); d.innerHTML=h; return d.textContent; };
@@ -101,10 +115,13 @@ const textoPlano=h=>{ const d=document.createElement('div'); d.innerHTML=h; retu
 /* ---------- Sonido ---------- */
 function oir(que,btn){
   if(V.sonando===btn){ detener(); finSonido(); return; }
-  const sec=que==='resp'?V.ej.sonarResp(V.resp):que==='ej'?V.ej.sonar:que==='tonica'||que==='cadencia'?V.ej.ref[que]:RES_SEC[+que];
+  let sec=que==='resp'?V.ej.sonarResp(V.resp):que==='ej'?V.ej.sonar:que==='tonica'||que==='cadencia'?V.ej.ref[que]:RES_SEC[+que];
+  if(V.ej&&V.ej.ref&&btn.closest('#ej')) sec=ajustar(sec);
   finSonido(); if(!tocar(sec,finSonido)){ say('No se pudo iniciar el sonido.'); return; }
   V.sonando=btn; btn.classList.add('on'); btn.dataset.txt=$('span',btn)?$('span',btn).textContent:btn.textContent; (btn.querySelector('span')||btn).textContent='Detener';
 }
+// aplica «Solo el bajo» (si la secuencia tiene bajo) y «Lento»
+function ajustar(sec){ if(!sec) return sec; if(V.bajo&&sec.some(e=>e.r==='bass')) sec=soloBajo(sec); return V.lento?ralentizar(sec):sec; }
 function finSonido(){ const b=V.sonando; V.sonando=null; if(b&&b.isConnected){ b.classList.remove('on'); (b.querySelector('span')||b).textContent=b.dataset.txt; } }
 const ICONOS={play:'<path d="M5 3.5v13l11-6.5z"/>',ok:'<path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>',no:'<path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>'};
 const icono=k=>`<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">${ICONOS[k]}</svg>`;
@@ -122,24 +139,56 @@ function bind(){
     const b=ev.target.closest('button'); if(!b) return;
     if(b.dataset.tab){ location.hash=`#/tema/${V.tema}/${b.dataset.tab}`; return; }
     if(b.dataset.nivel){ const n=intIn(+b.dataset.nivel,1,3,3); store.set.nivel[V.tema]=n; save(); $$('.nivb').forEach(c=>c.setAttribute('aria-pressed',String(c===b)));
-      if(V.tab!=='resumen') nuevo(); say(`Nivel ${NIVELES[n-1][1].toLowerCase()}.`); return; }
+      if(V.tab!=='resumen'){ chipsPct(); nuevo(); } say(`Nivel ${NIVELES[n-1][1].toLowerCase()}.`); return; }
     if(b.dataset.gen){ store.set.tipo[V.tema+'-'+V.tab]=b.dataset.gen; save(); $$('.chip[data-gen]').forEach(c=>c.setAttribute('aria-pressed',String(c===b))); nuevo(); return; }
     if(b.classList.contains('opb')){ elegir(b.closest('[data-campo]').dataset.campo,b.dataset.v); return; }
     if(b.id==='bComprobar'){ comprobar(); return; }
     if(b.id==='bSig'){ nuevo(); const en=$('#ej'); en.scrollIntoView({block:'nearest',behavior:smooth()}); const p=$('.opb',en); if(p) p.focus({preventScroll:true}); if(V.tab==='oido') say('Ejercicio nuevo. Pulsa Escuchar.'); return; }
+    if(b.dataset.opt){ const k=b.dataset.opt; V[k]=!V[k]; $$(`[data-opt="${k}"]`).forEach(c=>c.setAttribute('aria-pressed',String(V[k]))); detener(); finSonido();
+      say(`${CONMUT.find(x=>x[0]===k)[1]} ${V[k]?'activado':'desactivado'}.`); return; }
     if(b.dataset.oir){ oir(b.dataset.oir,b); return; }
     if(b.dataset.ejm){ oir(b.dataset.ejm,b); return; }
   });
   // pestañas con flechas, Inicio y Fin
   $('#app').addEventListener('keydown',ev=>{ const t=ev.target.closest('[role="tab"]'); if(!t) return; const i=TABS.findIndex(x=>x[0]===t.dataset.tab);
     const j=ev.key==='ArrowRight'?(i+1)%3:ev.key==='ArrowLeft'?(i+2)%3:ev.key==='Home'?0:ev.key==='End'?2:-1; if(j<0) return; ev.preventDefault(); location.hash=`#/tema/${V.tema}/${TABS[j][0]}`; setTimeout(()=>{ const n=$('#tab-'+TABS[j][0]); if(n) n.focus(); },0); });
-  // atajos: E escuchar, Intro comprobar o pasar al siguiente (si el foco no está en un control)
+  // atajos: E escuchar, T tónica, C cadencia, 1–9 elegir opción, Intro comprobar o pasar al siguiente (si el foco no está en un control)
   document.addEventListener('keydown',ev=>{ if(ev.ctrlKey||ev.metaKey||ev.altKey||!V.ej||V.tab==='resumen'||V.tema===null) return; const tag=ev.target.tagName;
     if(tag==='SELECT'||tag==='INPUT'||tag==='TEXTAREA') return;
-    if(ev.key==='e'||ev.key==='E'){ const b=$('#ej [data-oir="ej"]'); if(b){ ev.preventDefault(); oir('ej',b); } }
+    const ref={e:'ej',t:'tonica',c:'cadencia'}[ev.key.toLowerCase()];
+    if(ref&&ev.key.length===1){ const b=$(`#ej [data-oir="${ref}"]`); if(b){ ev.preventDefault(); oir(ref,b); } }
+    else if(/^[1-9]$/.test(ev.key)&&!V.corr){ const f=ev.target.closest&&ev.target.closest('[data-campo]'), c=f?V.ej.campos.find(x=>x.id===f.dataset.campo):V.ej.campos.find(x=>!x.multi&&V.resp[x.id]==null), o=c&&c.opciones[+ev.key-1];
+      if(o){ ev.preventDefault(); elegir(c.id,o.v); } }
     else if(ev.key==='Enter'&&tag!=='BUTTON'&&tag!=='A'&&tag!=='SUMMARY'){ ev.preventDefault(); if(V.corr) $('#bSig').click(); else comprobar(); } });
   $('#snd').addEventListener('change',ev=>{ store.set.snd=oneOf(ev.target.value,SONIDOS.map(x=>x[0]),'piano'); save(); if(ensureAudio()) tocar([{t:0,m:[60,64,67],d:1.1,v:0.6}]); });
+  $('#bExp').addEventListener('click',exportar);
+  $('#bImp').addEventListener('click',()=>{ $('#fImp').value=''; $('#fImp').click(); });
+  $('#fImp').addEventListener('change',ev=>{ const f=ev.target.files&&ev.target.files[0]; if(f) leerImport(f); });
+  $('#bImpSi').addEventListener('click',()=>{ const d=V.importar; V.importar=null; $('#importarAsk').hidden=true; if(!d) return;
+    store={set:d.set,prog:d.prog}; save(); $('#snd').value=store.set.snd; V.sesion={n:0,ok:0}; render(); avisoIO('Progreso importado.'); $('#bImp').focus(); });
+  $('#bImpNo').addEventListener('click',()=>{ V.importar=null; $('#importarAsk').hidden=true; avisoIO('Importación cancelada.'); $('#bImp').focus(); });
   $('#bBorrar').addEventListener('click',()=>{ $('#borrarAsk').hidden=false; $('#bBorrarNo').focus(); });
   $('#bBorrarNo').addEventListener('click',()=>{ $('#borrarAsk').hidden=true; $('#bBorrar').focus(); });
   $('#bBorrarSi').addEventListener('click',()=>{ store.prog={}; save(); V.sesion={n:0,ok:0}; $('#borrarAsk').hidden=true; render(); say('Progreso borrado.'); $('#bBorrar').focus(); });
+}
+
+/* ---------- Exportar e importar el progreso ---------- */
+function avisoIO(t){ const m=$('#ioMsg'); m.textContent=t; m.hidden=!t; say(t); }
+function exportar(){
+  const d=new Date(), f=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  try{ const url=URL.createObjectURL(new Blob([JSON.stringify({app:'dictado-armonico',v:1,set:store.set,prog:store.prog},null,1)],{type:'application/json'}));
+    const a=document.createElement('a'); a.href=url; a.download=`dictado-armonico-${f}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000);
+    avisoIO(`Progreso exportado: dictado-armonico-${f}.json.`); }catch(e){ avisoIO('No se pudo exportar el progreso.'); }
+}
+// lee el archivo, lo limpia con cleanSet y cleanProg y pide confirmación antes de sustituir lo guardado
+function leerImport(f){
+  const mal=t=>{ V.importar=null; $('#importarAsk').hidden=true; avisoIO(t); };
+  if(f.size>2e6) return mal('El archivo es demasiado grande para ser un progreso de Dictado Armónico.');
+  const r=new FileReader(); r.onerror=()=>mal('No se pudo leer el archivo.');
+  r.onload=()=>{ let d; try{ d=JSON.parse(r.result); }catch(e){ return mal('El archivo no es un JSON válido.'); }
+    if(!isObj(d)||!(isObj(d.set)||isObj(d.prog))||(has(d,'app')&&d.app!=='dictado-armonico')) return mal('El archivo no parece un progreso de Dictado Armónico.');
+    const set=cleanSet(d.set), prog=cleanProg(d.prog), n=Object.values(prog).reduce((s,p)=>s+p.n,0); V.importar={set,prog}; avisoIO('');
+    $('#importarQ').textContent=`¿Sustituir el progreso y los ajustes guardados en este navegador por los del archivo «${f.name}» (${n} ${n===1?'ejercicio':'ejercicios'} hechos)? No se puede deshacer.`;
+    $('#importarAsk').hidden=false; $('#bImpNo').focus(); say('Confirma si quieres sustituir el progreso guardado.'); };
+  r.readAsText(f);
 }

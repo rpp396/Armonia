@@ -2,10 +2,14 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Dictado Armónico</title>
+<meta name="theme-color" content="#E8EBF0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1015" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="iconos/icono.svg">
+<link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -21,12 +25,21 @@
   <footer class="pie">
     <label>Sonido <select id="snd"></select></label>
     <button type="button" class="btn sm" id="bBorrar">Borrar el progreso</button>
+    <button type="button" class="btn sm" id="bExp">Exportar</button>
+    <button type="button" class="btn sm" id="bImp">Importar</button>
+    <input type="file" id="fImp" accept="application/json,.json" hidden>
     <div class="ask" id="borrarAsk" role="group" aria-labelledby="borrarQ" hidden>
       <p id="borrarQ">¿Borrar todo el progreso guardado en este navegador? No se puede deshacer.</p>
       <button type="button" class="btn sm danger" id="bBorrarSi">Borrar</button>
       <button type="button" class="btn sm" id="bBorrarNo">Cancelar</button>
     </div>
-    <p class="nota">Atajos: <kbd>E</kbd> escuchar · <kbd>Intro</kbd> comprobar y pasar al siguiente. El progreso se guarda solo en este navegador.</p>
+    <div class="ask" id="importarAsk" role="group" aria-labelledby="importarQ" hidden>
+      <p id="importarQ"></p>
+      <button type="button" class="btn sm danger" id="bImpSi">Sustituir</button>
+      <button type="button" class="btn sm" id="bImpNo">Cancelar</button>
+    </div>
+    <p class="nota" id="ioMsg" hidden></p>
+    <p class="nota">Atajos: <kbd>E</kbd> escuchar el ejercicio · <kbd>T</kbd> tónica · <kbd>C</kbd> cadencia (en los dictados) · <kbd>1</kbd>–<kbd>9</kbd> elegir opción · <kbd>Intro</kbd> comprobar y pasar al siguiente. El progreso se guarda solo en este navegador.</p>
   </footer>
 </div>
 <div id="sr" class="sr-only" role="status" aria-live="polite"></div>

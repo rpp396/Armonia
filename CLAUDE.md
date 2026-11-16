@@ -2,7 +2,7 @@
 
 App web para practicar los nueve temas del curso de armonía (apuntes en `Temas/` y programa en `Programa del curso.txt`, que no están en el repositorio; su contenido está resumido en `APUNTES.md`, que es la referencia cuando no están los PDF). Cada tema tiene un resumen, ejercicios de teoría y ejercicios de oído generados al azar; el alumno responde con botones y, si falla, ve la respuesta correcta y la explicación. La interfaz está en español. Hermana de DandeBook y DandEtudeDuR (rpp396), de las que toma la paleta, las tipografías, los glifos, los instrumentos y las convenciones.
 
-La app no tiene dependencias ni build: `index.html` (solo HTML), `styles.css` (todos los estilos, con las variables de color y el modo oscuro), las fuentes en `fonts/` y el JavaScript en `js/`, repartido en scripts clásicos que `index.html` carga al final del `<body>` en orden. Para probarla basta con abrir `index.html` (funciona con `file://`) o servir la carpeta. El audio arranca solo tras pulsar un botón.
+La app no tiene dependencias ni build: `index.html` (solo HTML), `styles.css` (todos los estilos, con las variables de color y el modo oscuro), las fuentes en `fonts/`, los iconos en `iconos/`, el JavaScript en `js/`, el manifiesto `manifest.webmanifest` y el service worker `sw.js`, repartido en scripts clásicos que `index.html` carga al final del `<body>` en orden. Para probarla basta con abrir `index.html` (funciona con `file://`) o servir la carpeta (por http(s) es además instalable y funciona sin conexión; ver «Instalable y sin conexión»). El audio arranca solo tras pulsar un botón.
 
 ## Mapa del código (archivos de `js/`, en orden de carga)
 
@@ -16,12 +16,12 @@ La app no tiene dependencias ni build: `index.html` (solo HTML), `styles.css` (t
 | `pentagrama.js` | `pentagrama(eventos, opt)` → SVG en clave de sol o, con `opt.gran`, en sistema de piano (sol y fa; lo que está por debajo del do central va en fa): notas y acordes apilados (segundas desplazadas, alteraciones en columnas), armadura, plicas, silencio de negra, ligaduras, cifrado encima (`arriba`: texto o `{t, sup}`, con superíndice; el ancho del texto cuenta para que no se corte), bajo cifrado debajo (`abajo`), notas marcadas (`marca`) y barras (`barra`). Sin estilos en línea. |
 | `instrumentos.js` | Copiado de DandeBook: `tone(inst, midi, t, dur, vel, papel)`, instrumentos sintetizados, `makeReverb`. |
 | `audio.js` | `ensureAudio`, `tocar(sec, alTerminar)`, `detener`. |
-| `secuencias.js` | Secuencias de sonido `[{t, m:[midi], d, r, v}]`, **sin DOM**: `secIntervalo`, `secAcorde`, `secEscala`, `secProgresion`, `unir`. |
+| `secuencias.js` | Secuencias de sonido `[{t, m:[midi], d, r, v}]`, **sin DOM**: `secIntervalo`, `secAcorde`, `secEscala`, `secProgresion`, `unir`; ayudas de escucha puras `ralentizar(sec, factor=1.5)` y `soloBajo(sec)` (solo los eventos `r:'bass'`). |
 | `ejercicio.js` | Motor de ejercicios, **sin DOM**: `registrar`, `EJ`, `ejerciciosDe`; opciones (`op`, `campo`, `eleccion`, `campoNum`, `campoCal`, `campoLetra`, `campoAlt`); corrección (`corregir`, `completo`, `solucionHTML`); ayudas (`fundamentales(nivel)`, `intentar`, `vozAcorde`, `vocesProgresion`, `cadencia`). |
 | `temas/t1.js` … `t9.js` | Los generadores de cada tema. `t2.js` tiene la fábrica `registrarAcordes(tema)` (tríadas y tétradas; `t3.js` solo la llama) y `t7.js` la fábrica `registrarGrados(tema, modo)` (`t8.js` solo la llama). |
 | `resumen.js` | `RESUMEN[n]()` → HTML del resumen de cada tema, con ejemplos (`fig`) que suenan (`RES_SEC`). Las tablas de grados y tensiones salen de `teoria.js`. |
-| `interfaz.js` | Estado `V`, rutas por hash (`#/`, `#/tema/N/resumen|teoria|oido`), `renderPortada`, `renderTema`, `renderPanel`, `nuevo`, `renderEj`, `comprobar`, `feedbackHTML`, `oir`, `bind`. |
-| `inicio.js` | Arranque. Debe ser el último script. |
+| `interfaz.js` | Estado `V`, rutas por hash (`#/`, `#/tema/N/resumen|teoria|oido`), `renderPortada`, `renderTema`, `renderPanel`, `chipsPct`, `nuevo`, `renderEj`, `comprobar`, `feedbackHTML`, `oir` (aplica `ajustar`: «Solo el bajo» y «Lento»), `elegir`, `bind` (clics, atajos de teclado), exportar e importar el progreso (`exportar`, `leerImport`). `anotar(id, bien, nivel)` guarda el total y el desglose por nivel. |
+| `inicio.js` | Arranque (y, solo con http(s), enlaza el manifiesto y registra `sw.js`). Debe ser el último script. |
 
 ## Contrato de un ejercicio
 
@@ -67,7 +67,18 @@ registrar({id:'t1-identificar', tema:1, modo:'teoria'|'oido', titulo, gen(R, niv
 - Ninguna petición a otros sitios: todo, fuentes incluidas, va en el repositorio.
 - Las opciones son botones con `aria-pressed`; al corregir se marcan `.bien` / `.mal` con texto oculto «correcta / incorrecta». El veredicto se anuncia con `say()` y el foco pasa a `#fb`.
 - Atajos: `E` escuchar, `Intro` comprobar o siguiente. Pestañas con flechas.
-- Zonas táctiles de 44 px como mínimo.
+- Zonas táctiles de 44 px como mínimo (los botones del pie son `.btn.sm`, de 36 px, como «Borrar el progreso»).
+- **Dictados con cadencia** (`ref`): junto a los botones de escucha hay dos conmutadores con `aria-pressed`, «Lento» (×1,5 en `t` y `d`) y «Solo el bajo» (solo `r:'bass'`). Su estado vive en `V` (no se guarda), vale para todo lo que suena del ejercicio (referencias, «Oír lo correcto», «Oír lo que respondiste»), cambiarlo no repinta la tarjeta, detiene lo que suena y se anuncia con `say()`.
+- **Atajos:** `E` escuchar el ejercicio, `T` acorde de tónica, `C` cadencia de referencia (si el ejercicio tiene esos botones), `1`–`9` eligen la opción N del campo con el foco o, sin foco en un campo, del primer campo de elección única sin responder (no hacen nada tras corregir), `Intro` comprobar o siguiente. Ninguno actúa con `ctrl`/`meta`/`alt`, en `SELECT`/`INPUT`/`TEXTAREA` ni en la pestaña Resumen.
+- **Progreso por nivel:** `store.prog[id]` es `{n, ok, racha, mejor, niv?: {1|2|3: {n, ok}}}` (misma clave `dictado-armonico-v1`). `n`/`ok` son el total (lo guardado antes de `niv` sigue contando ahí); `niv` solo cuenta lo hecho desde que existe. La portada muestra el total del tema; el porcentaje de cada chip de tipo es el del **nivel elegido** y la pantalla lo dice («Porcentaje de aciertos en nivel …»). `cleanProg` valida `niv` (solo niveles 1 a 3, enteros, `ok ≤ n`).
+- **Exportar e importar** (pie): «Exportar» descarga `dictado-armonico-AAAA-MM-DD.json` con `{app, v, set, prog}` (blob + `<a download>`); «Importar» lee un JSON con `FileReader`, lo pasa por `cleanSet`/`cleanProg` y pide confirmación en `#importarAsk` antes de sustituir lo guardado; si no es válido, lo dice en `#ioMsg` y con `say()`. No hace falta tocar la CSP para esto (la descarga y la lectura de un archivo elegido por el usuario no son peticiones de red); se comprobó con `file://` y con http.
+
+## Instalable y sin conexión
+
+- `manifest.webmanifest` (`start_url` y `scope` relativos, `display: standalone`, colores de la paleta) e iconos en `iconos/`: `icono.svg` y los PNG de 192, 512 y 180 px (este último, `apple-touch-icon.png`). Los PNG se generaron con una captura de Edge headless del SVG, sin dependencias.
+- `sw.js` precarga la lista `ARCHIVOS` (HTML, CSS, manifiesto, iconos, fuentes y todos los JS) para que la app funcione sin conexión. Responde **primero desde la red** y guarda en la caché lo que llega bien; solo usa la caché sin conexión o si la red tarda más de 3 s (ignorando la cadena de consulta, para `?semilla=`). Lo pidió el usuario, para que nadie se quede con una versión vieja: cambiar un archivo no exige tocar `sw.js`. **Al añadir o quitar un archivo hay que actualizar `ARCHIVOS`** y conviene subir `VERSION`: una prueba de `estatico.test.mjs` compara la lista con los archivos reales.
+- `inicio.js` registra el worker y añade el `<link rel="manifest">` **solo con http(s)**. Con `file://` no hace nada: Chromium rechaza el manifiesto de un archivo local con un error de CORS en la consola, por eso el enlace no está en `index.html`.
+- La CSP añade `manifest-src 'self'; worker-src 'self'` (con `default-src 'none'` harían falta). Nada más.
 
 ## Pruebas
 
@@ -75,6 +86,7 @@ registrar({id:'t1-identificar', tema:1, modo:'teoria'|'oido', titulo, gen(R, niv
 
 - `teoria.test.mjs`: el motor contra los ejemplos de los apuntes (intervalos, cifrados, bajo cifrado, tablas de grados, funciones).
 - `generadores.test.mjs`: cada generador en los tres niveles con muchas semillas (`SEMILLAS=1000 npm test` para más): solución entre las opciones, corrección, explicación sin datos rotos, partitura y sonido válidos.
-- `estatico.test.mjs`: CSP, nada en línea, ninguna dirección externa, validación de lo guardado.
+- `estatico.test.mjs`: CSP, nada en línea, ninguna dirección externa, validación de lo guardado (incluido `niv`), y que `sw.js` lista exactamente los archivos de la app, el manifiesto y los iconos.
+- `secuencias.test.mjs`: `ralentizar` y `soloBajo`.
 
 `tests/lib.mjs` carga los scripts sin DOM en un contexto de `vm`. **No hay pruebas en navegador**: la interfaz se comprueba a mano.
