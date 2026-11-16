@@ -6,7 +6,7 @@ Es hermana de [DandeBook](https://github.com/rpp396/DandeBook) y [DandEtudeDuR](
 
 ## Uso
 
-Abre `index.html` en el navegador. Necesita a su lado `styles.css` y las carpetas `js/` y `fonts/`. Funciona abriéndolo directamente (`file://`) o sirviendo la carpeta con cualquier servidor web. El progreso se guarda en el navegador.
+Abre `index.html` en el navegador. Necesita a su lado `styles.css` y las carpetas `js/`, `fonts/` e `iconos/`. Funciona abriéndolo directamente (`file://`) o sirviendo la carpeta con cualquier servidor web; servida por http(s) se puede instalar como aplicación y funciona sin conexión. El progreso se guarda en el navegador y se puede exportar e importar (pie de página) para llevarlo a otro.
 
 ## Qué incluye
 
@@ -27,11 +27,12 @@ Abre `index.html` en el navegador. Necesita a su lado `styles.css` y las carpeta
 - **Los intervalos se explican como se calculan habitualmente:** primero el número (contando los nombres de las notas) y después la calidad (contando los semitonos y comparando con la tabla). Las correcciones y el Resumen miden las distancias en semitonos.
 - **Acordes con tensiones en sistema de piano** (tema 5): bajo en clave de fa, el resto en el registro central, respetando los *low interval limits*. La 13 ocupa el lugar de la quinta.
 - **Escalas con su armadura** en las soluciones (tema 6).
-- **Progreso** por tema y por tipo de ejercicio.
+- **Progreso** por tema y por tipo de ejercicio; el porcentaje de cada tipo es el del nivel elegido.
+- **Dictados con cadencia** (temas 7 a 9): se pueden escuchar más despacio y solo con el bajo.
 - **Sonido** sintetizado en el propio navegador (piano, piano eléctrico, guitarra, órgano o cuerdas).
 - **Accesible y privada:** se usa entera con teclado y lector de pantalla, y no hace ninguna petición a otros sitios.
 
-Atajos: `E` escuchar · `Intro` comprobar y pasar al siguiente.
+Atajos: `E` escuchar · `T` tónica · `C` cadencia (en los dictados) · `1`–`9` elegir opción · `Intro` comprobar y pasar al siguiente.
 
 ## Contenido del curso
 

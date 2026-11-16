@@ -69,9 +69,14 @@ kbd{font-family:var(--mono);font-size:.85em;border:1px solid var(--line);border-
 .btn.ref{color:var(--play)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 13px;font-size:15px;cursor:pointer;min-height:36px}
-.chip small{color:var(--muted);font-family:var(--mono);font-size:12px;margin-left:4px}
+.chip small{color:var(--muted);font-family:var(--mono);font-size:12px;margin-left:6px}
 .chip[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
 .chip[aria-pressed="true"] small{color:inherit}
+.chip small:empty{display:none}
+.chips .pista{flex-basis:100%;font-size:14px;margin-top:2px}
+.togs{display:inline-flex;flex-wrap:wrap;gap:8px}
+.btn.tog{min-height:44px}
+.btn.tog[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 
 /* ---------- Portada ---------- */
 .sec{font-family:var(--serif);font-weight:400;font-size:22px;margin:0 0 12px}

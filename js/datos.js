@@ -49,11 +49,14 @@ function cleanSet(s){
   if(isObj(s.tipo)) for(const k of Object.keys(s.tipo).slice(0,40)) if(/^[1-9]-(teoria|oido)$/.test(k)&&typeof s.tipo[k]==='string'&&s.tipo[k].length<40) o.tipo[k]=s.tipo[k];
   return o;
 }
-// progreso por generador: {n: intentos, ok: aciertos, racha, mejor}
+// progreso por generador: {n: intentos, ok: aciertos, racha, mejor, niv?: {1|2|3: {n, ok}}}. `niv` es el desglose por nivel;
+// lo guardado antes de que existiera no lo tiene y sigue contando en n y ok.
 function cleanProg(p){
   const o={}; if(!isObj(p)) return o;
   for(const k of Object.keys(p).slice(0,200)){ const v=p[k]; if(!/^t[1-9]-[a-z0-9-]{1,30}$/.test(k)||!isObj(v)) continue;
-    const n=intIn(v.n,0,1e7,0), ok=Math.min(n,intIn(v.ok,0,1e7,0)); o[k]={n,ok,racha:intIn(v.racha,0,1e7,0),mejor:intIn(v.mejor,0,1e7,0)}; }
+    const n=intIn(v.n,0,1e7,0), ok=Math.min(n,intIn(v.ok,0,1e7,0)); o[k]={n,ok,racha:intIn(v.racha,0,1e7,0),mejor:intIn(v.mejor,0,1e7,0)};
+    if(isObj(v.niv)){ const niv={}; for(const l of [1,2,3]) if(has(v.niv,l)&&isObj(v.niv[l])){ const ln=intIn(v.niv[l].n,0,1e7,0); niv[l]={n:ln,ok:Math.min(ln,intIn(v.niv[l].ok,0,1e7,0))}; }
+      if(Object.keys(niv).length) o[k].niv=niv; } }
   return o;
 }
 let store={set:cleanSet(null),prog:{}};
