@@ -3,7 +3,7 @@
 // VERSION: así se instala una caché nueva y se borran las antiguas.
 // La prueba tests/estatico.test.mjs comprueba que ARCHIVOS coincide con los archivos reales.
 'use strict';
-const VERSION='dictado-armonico-v1';
+const VERSION='dictado-armonico-v2';
 const ARCHIVOS=[
   './',
   'index.html',
@@ -20,6 +20,7 @@ const ARCHIVOS=[
   'fonts/pautado-simbolos.woff',
   'fonts/young-serif-400-latin.woff2',
   'js/audio.js',
+  'js/bienvenida.js',
   'js/datos.js',
   'js/ejercicio.js',
   'js/glifos.js',

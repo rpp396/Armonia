@@ -15,7 +15,7 @@ export function scripts() {
 
 // Carga los scripts indicados (por defecto, los que no necesitan navegador) y devuelve los nombres pedidos.
 export function cargar(nombres, archivos) {
-  const lista = archivos || scripts().filter(f => !/glifos|instrumentos|audio|interfaz|inicio/.test(f));
+  const lista = archivos || scripts().filter(f => !/glifos|instrumentos|audio|interfaz|bienvenida|inicio/.test(f));
   const nodo = () => ({ textContent: '', innerHTML: '', setAttribute() {}, appendChild() {}, prepend() {}, addEventListener() {}, classList: { add() {}, remove() {}, toggle() {} } });
   const ctx = vm.createContext({
     console, setTimeout, clearTimeout, Math, JSON,

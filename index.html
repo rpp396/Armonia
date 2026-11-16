@@ -24,6 +24,7 @@
   <main id="app" tabindex="-1"></main>
   <footer class="pie">
     <label>Sonido <select id="snd"></select></label>
+    <button type="button" class="btn sm" id="bAyuda">Cómo funciona</button>
     <button type="button" class="btn sm" id="bBorrar">Borrar el progreso</button>
     <button type="button" class="btn sm" id="bExp">Exportar</button>
     <button type="button" class="btn sm" id="bImp">Importar</button>
@@ -42,6 +43,46 @@
     <p class="nota">Atajos: <kbd>E</kbd> escuchar el ejercicio · <kbd>T</kbd> tónica · <kbd>C</kbd> cadencia (en los dictados) · <kbd>1</kbd>–<kbd>9</kbd> elegir opción · <kbd>Intro</kbd> comprobar y pasar al siguiente. El progreso se guarda solo en este navegador.</p>
   </footer>
 </div>
+<dialog class="bienv" id="bienv" aria-labelledby="bvT1">
+  <p class="tn" id="bvN">Paso 1 de 4</p>
+  <section data-paso="0">
+    <h2 class="bvt" id="bvT1" tabindex="-1">Bienvenida a Dictado Armónico</h2>
+    <p>Ejercicios para practicar los nueve temas del curso de armonía, de los intervalos a las funciones armónicas.</p>
+    <p>Cada tema tiene un resumen, ejercicios de teoría y ejercicios de oído, que se generan al azar.</p>
+    <p>No hace falta cuenta: el progreso se guarda solo en este navegador.</p>
+  </section>
+  <section data-paso="1" hidden>
+    <h2 class="bvt" id="bvT2" tabindex="-1">Cómo es un tema</h2>
+    <dl class="bvdl">
+      <dt>Resumen</dt><dd>Lo esencial del tema, con ejemplos que suenan.</dd>
+      <dt>Teoría</dt><dd>Ejercicios sobre la partitura y el cifrado.</dd>
+      <dt>Oído</dt><dd>Escuchas y respondes qué suena.</dd>
+    </dl>
+    <div class="bvniv" role="group" aria-labelledby="bvNivL" aria-describedby="bvNivP"><span class="nivl" id="bvNivL">Dificultad</span><span id="bvNiv"></span></div>
+    <p class="pista" id="bvNivP">El nivel cambia las tonalidades, las alteraciones y los tipos que entran. Lo que elijas aquí se aplica a los nueve temas al pulsar «Empezar»; dentro de cada tema se puede cambiar cuando quieras.</p>
+  </section>
+  <section data-paso="2" hidden>
+    <h2 class="bvt" id="bvT3" tabindex="-1">Cómo se responde</h2>
+    <p>Elige la respuesta con los botones y pulsa «Comprobar». Si fallas, ves la respuesta correcta y la explicación.</p>
+    <p>En los ejercicios de oído, «Escuchar el ejercicio» lo toca las veces que quieras. En los dictados de los temas 7 a 9, «Acorde de tónica» y «Cadencia de referencia» son opcionales, y «Lento» y «Solo el bajo» ayudan a escuchar.</p>
+    <ul class="bvatajos">
+      <li><kbd>E</kbd> escuchar el ejercicio</li>
+      <li><kbd>T</kbd> acorde de tónica · <kbd>C</kbd> cadencia (en los dictados)</li>
+      <li><kbd>1</kbd>–<kbd>9</kbd> elegir opción</li>
+      <li><kbd>Intro</kbd> comprobar y pasar al siguiente</li>
+    </ul>
+  </section>
+  <section data-paso="3" hidden>
+    <h2 class="bvt" id="bvT4" tabindex="-1">Sonido y progreso</h2>
+    <p class="bvsnd"><label for="bvSnd">Sonido</label> <select id="bvSnd"></select> <button type="button" class="btn play" id="bvProbar">Probar el sonido</button></p>
+    <p>El progreso se guarda en este navegador. Con «Exportar» e «Importar», al pie de la página, lo llevas a otro.</p>
+    <p class="pista">Esta guía se vuelve a abrir con «Cómo funciona», también al pie.</p>
+  </section>
+  <div class="bvnav">
+    <button type="button" class="btn" id="bvOmitir">Omitir</button>
+    <span class="bvder"><button type="button" class="btn" id="bvAtras" hidden>Atrás</button><button type="button" class="btn primary" id="bvSig">Siguiente</button></span>
+  </div>
+</dialog>
 <div id="sr" class="sr-only" role="status" aria-live="polite"></div>
 <script src="js/glifos.js"></script>
 <script src="js/datos.js"></script>
@@ -62,6 +103,7 @@
 <script src="js/temas/t9.js"></script>
 <script src="js/resumen.js"></script>
 <script src="js/interfaz.js"></script>
+<script src="js/bienvenida.js"></script>
 <script src="js/inicio.js"></script>
 </body>
 </html>
