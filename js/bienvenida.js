@@ -1,6 +1,6 @@
 // Dictado Armónico · Bienvenida: un <dialog> modal de cuatro pasos (marcado en index.html) que sale sola la primera vez
 // (ver debeMostrarBienvenida en datos.js) y se reabre con «Cómo funciona» en el pie. Al cerrarse de cualquier forma
-// (Empezar, Omitir o Esc) guarda store.set.visto; el nivel elegido solo se aplica con «Empezar».
+// (Empezar, Omitir, Esc o pulsar fuera) guarda store.set.visto; el nivel elegido solo se aplica con «Empezar».
 // Script clásico: comparte el ámbito global con los demás de js/. La arranca inicio.js.
 'use strict';
 
@@ -23,8 +23,8 @@ function abrirBienvenida(){
   const ns=PROGRAMA.map(t=>nivelDe(t.n)), comun=ns.every(n=>n===ns[0])?ns[0]:0;
   $$('[data-bvnivel]',d).forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.bvnivel===comun)));
   $('#bvSnd').value=store.set.snd; d.returnValue='';
-  // con el diálogo modal abierto, lo de fuera es inerte: la región de anuncios (#sr) se lleva dentro para que say() se oiga
-  d.appendChild($('#sr')); d.showModal(); pasoBienvenida(0,false);
+  // con el diálogo modal abierto, lo de fuera es inerte: say() escribe en la región de anuncios propia del diálogo (#bvSr)
+  d.showModal(); pasoBienvenida(0,false);
 }
 function iniciarBienvenida(){
   const d=$('#bienv');
@@ -35,7 +35,7 @@ function iniciarBienvenida(){
       say(`Nivel ${NIVELES[B.nivel-1][1].toLowerCase()} para los nueve temas.`); return; }
     if(b.id==='bvSig'){ if(B.paso===PASOS-1) d.close('empezar'); else pasoBienvenida(B.paso+1,true); return; }
     if(b.id==='bvAtras'){ pasoBienvenida(B.paso-1,true); return; }
-    if(b.id==='bvOmitir'){ d.close('omitir'); return; }
+    if(b.id==='bvOmitir'){ if(d.requestClose) d.requestClose('omitir'); else d.close('omitir'); return; }
     if(b.id==='bvProbar'&&!tocar(acordePrueba())) say('No se pudo iniciar el sonido.'); });
   // flechas: paso anterior o siguiente (no en el desplegable, que las usa para elegir)
   d.addEventListener('keydown',ev=>{ if(ev.ctrlKey||ev.metaKey||ev.altKey||ev.target.tagName==='SELECT') return;
@@ -43,9 +43,12 @@ function iniciarBienvenida(){
   // el mismo ajuste que el desplegable del pie: se guarda al momento y suena un acorde
   $('#bvSnd').addEventListener('change',ev=>{ store.set.snd=oneOf(ev.target.value,SONIDOS.map(x=>x[0]),'piano'); save(); $('#snd').value=store.set.snd; tocar(acordePrueba()); });
   // Esc dispara «cancel» y después «close» (returnValue vacío): cuenta como omitir
-  d.addEventListener('close',()=>{ document.body.appendChild($('#sr'));
+  d.addEventListener('close',()=>{
     const nivel=d.returnValue==='empezar'&&B.nivel; if(nivel) PROGRAMA.forEach(t=>{ store.set.nivel[t.n]=nivel; });
     store.set.visto=true; save(); if(nivel&&V.tema!==null) render();
     const f=B.desde&&B.desde.isConnected?B.desde:$('#app'); f.focus({preventScroll:true}); });
+  // closedby="any" (cerrar pulsando fuera) aún no está en todos los navegadores: donde falta, se imita
+  if(!('closedBy' in HTMLDialogElement.prototype)) d.addEventListener('click',ev=>{ if(ev.target!==d) return;
+    const r=d.getBoundingClientRect(); if(ev.clientX<r.left||ev.clientX>r.right||ev.clientY<r.top||ev.clientY>r.bottom) d.close('fuera'); });
   $('#bAyuda').addEventListener('click',abrirBienvenida);
 }

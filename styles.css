@@ -4,29 +4,45 @@
 @font-face{font-family:'Atkinson Hyperlegible';font-style:normal;font-weight:700;font-display:swap;src:url(fonts/atkinson-hyperlegible-700-latin.woff2) format('woff2')}
 @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500 700;font-display:swap;src:url(fonts/jetbrains-mono-latin.woff2) format('woff2')}
 @font-face{font-family:'Young Serif';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/young-serif-400-latin.woff2) format('woff2')}
-@font-face{font-family:'Pautado Cifra';font-style:normal;font-weight:400;font-display:block;src:url(fonts/pautado-cifra.woff) format('woff')}
-@font-face{font-family:'Pautado Simbolos';font-style:normal;font-weight:400;font-display:block;src:url(fonts/pautado-simbolos.woff) format('woff')}
+@font-face{font-family:'Pautado Cifra';font-style:normal;font-weight:400;font-display:block;src:url(fonts/pautado-cifra.woff2) format('woff2')}
+@font-face{font-family:'Pautado Simbolos';font-style:normal;font-weight:400;font-display:block;src:url(fonts/pautado-simbolos.woff2) format('woff2')}
+/* Respaldos con las métricas de las fuentes de la app (medidas con fontTools contra Liberation, que tiene las de Arial y Times):
+   mientras llega la fuente buena el texto ocupa lo mismo y no salta la maquetación al cambiar. */
+@font-face{font-family:'Atkinson respaldo';font-weight:400;src:local('Arial'),local('Liberation Sans'),local('Helvetica');size-adjust:97.7%;ascent-override:97.3%;descent-override:29.7%;line-gap-override:0%}
+@font-face{font-family:'Atkinson respaldo';font-weight:700;src:local('Arial Bold'),local('Arial-BoldMT'),local('Liberation Sans Bold'),local('Helvetica Bold');size-adjust:97.8%;ascent-override:97.1%;descent-override:29.6%;line-gap-override:0%}
+@font-face{font-family:'Young Serif respaldo';src:local('Times New Roman'),local('TimesNewRomanPSMT'),local('Liberation Serif'),local('Times');size-adjust:123.5%;ascent-override:84.7%;descent-override:29.6%;line-gap-override:0%}
 
+/* Colores: cada token lleva su valor claro y oscuro con light-dark(); manda color-scheme (el del sistema, o el que fije data-theme). */
 :root{
-  --bg:#E8EBF0; --panel:#F4F6F9; --paper:#FFFFFF; --ink:#141821; --muted:#586173;
-  --line:#D2D7E0; --ui:#7A8396; --staff:#838C9F; --accent:#2340C4; --accent-ink:#FFFFFF;
-  --accent-soft:rgba(35,64,196,.10); --play:#0B7A8A; --play-soft:rgba(11,122,138,.12); --warn:#8F5405;
-  --good:#17703F; --good-soft:rgba(23,112,63,.10); --bad:#C23049; --bad-soft:rgba(194,48,73,.09);
+  color-scheme:light dark;
+  --bg:light-dark(#E8EBF0,#0E1015); --panel:light-dark(#F4F6F9,#151820); --paper:light-dark(#FFFFFF,#1A1E27);
+  --ink:light-dark(#141821,#E6E9F0); --muted:light-dark(#586173,#97A0B2); --line:light-dark(#D2D7E0,#2A303C);
+  --staff:light-dark(#838C9F,#667084); --accent:light-dark(#2340C4,#8FA4FF); --accent-ink:light-dark(#FFFFFF,#0E1015);
+  --accent-soft:light-dark(rgba(35,64,196,.10),rgba(143,164,255,.14)); --play:light-dark(#0B7A8A,#4BC0CE);
+  --play-soft:light-dark(rgba(11,122,138,.12),rgba(75,192,206,.14)); --warn:light-dark(#8F5405,#E2A84A);
+  --good:light-dark(#17703F,#5CCB8C); --good-soft:light-dark(rgba(23,112,63,.10),rgba(92,203,140,.12));
+  --bad:light-dark(#C23049,#F06B80); --bad-soft:light-dark(rgba(194,48,73,.09),rgba(240,107,128,.12));
   --shadow:0 1px 0 rgba(20,24,33,.04),0 10px 28px -16px rgba(20,24,33,.28);
-  --serif:'Young Serif',Georgia,'Times New Roman',serif;
-  --sans:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --serif:'Young Serif','Young Serif respaldo',Georgia,'Times New Roman',serif;
+  --sans:'Atkinson Hyperlegible','Atkinson respaldo',system-ui,-apple-system,'Segoe UI',sans-serif;
   --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
-  --hand:'Pautado Cifra','Pautado Simbolos','Young Serif',Georgia,serif;
+  --hand:'Pautado Cifra','Pautado Simbolos','Young Serif','Young Serif respaldo',Georgia,serif;
+  accent-color:var(--accent);
+  scrollbar-color:var(--staff) var(--bg);
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    color-scheme:dark;
-    --bg:#0E1015; --panel:#151820; --paper:#1A1E27; --ink:#E6E9F0; --muted:#97A0B2;
-    --line:#2A303C; --ui:#717B8F; --staff:#667084; --accent:#8FA4FF; --accent-ink:#0E1015;
-    --accent-soft:rgba(143,164,255,.14); --play:#4BC0CE; --play-soft:rgba(75,192,206,.14); --warn:#E2A84A;
-    --good:#5CCB8C; --good-soft:rgba(92,203,140,.12); --bad:#F06B80; --bad-soft:rgba(240,107,128,.12);
-    --shadow:none;
-  }
+:root[data-theme="light"]{color-scheme:light}
+:root[data-theme="dark"]{color-scheme:dark}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){--shadow:none} }
+:root[data-theme="dark"]{--shadow:none}
+/* Navegadores sin light-dark() (anteriores a 2024): los mismos colores con la media query de siempre */
+@supports not (color:light-dark(#000,#fff)){
+  :root{--bg:#E8EBF0; --panel:#F4F6F9; --paper:#FFFFFF; --ink:#141821; --muted:#586173; --line:#D2D7E0; --staff:#838C9F;
+    --accent:#2340C4; --accent-ink:#FFFFFF; --accent-soft:rgba(35,64,196,.10); --play:#0B7A8A; --play-soft:rgba(11,122,138,.12);
+    --warn:#8F5405; --good:#17703F; --good-soft:rgba(23,112,63,.10); --bad:#C23049; --bad-soft:rgba(194,48,73,.09)}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#0E1015; --panel:#151820; --paper:#1A1E27; --ink:#E6E9F0; --muted:#97A0B2; --line:#2A303C; --staff:#667084;
+    --accent:#8FA4FF; --accent-ink:#0E1015; --accent-soft:rgba(143,164,255,.14); --play:#4BC0CE; --play-soft:rgba(75,192,206,.14);
+    --warn:#E2A84A; --good:#5CCB8C; --good-soft:rgba(92,203,140,.12); --bad:#F06B80; --bad-soft:rgba(240,107,128,.12)} }
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -204,3 +220,18 @@ span.tu{border:0;padding:1px 6px;border-radius:6px;margin:0}
   .bienv{padding:16px 14px}
 }
 @media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+
+/* ---------- Colores forzados (alto contraste de Windows) ---------- */
+/* Los fondos de color desaparecen: lo pulsado, lo correcto y lo incorrecto se distinguen con bordes y colores del sistema. */
+@media (forced-colors: active){
+  .chip[aria-pressed="true"],.btn.tog[aria-pressed="true"],.nivb[aria-pressed="true"],.opb[aria-pressed="true"]{border:3px solid Highlight;forced-color-adjust:none;background:Highlight;color:HighlightText}
+  .tabs button[aria-selected="true"]{border-bottom:3px solid Highlight}
+  .campo:disabled .opb.bien{border:3px solid CanvasText;outline:2px solid CanvasText;outline-offset:-6px;color:CanvasText}
+  .campo:disabled .opb.mal{border:3px dashed CanvasText;color:GrayText}
+  svg.pent{forced-color-adjust:none;color:CanvasText}
+  .pent .stl,.pent .bl{stroke:CanvasText}
+  .pent .lab,.pent .cif{fill:CanvasText}
+  .pent .mk,.pent .mkp{fill:Highlight;color:Highlight}
+  .btn svg,.ver svg{fill:currentColor}
+  :focus-visible{outline-color:Highlight}
+}
