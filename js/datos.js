@@ -13,7 +13,7 @@ const r2=v=>Math.round(v*100)/100;
 const reduceMQ=typeof matchMedia==='function'?matchMedia('(prefers-reduced-motion: reduce)'):{matches:false};
 const smooth=()=>reduceMQ.matches?'auto':'smooth';
 let srT=0;
-function say(t){ const el=$('#sr'); if(!el) return; clearTimeout(srT); el.textContent=''; srT=setTimeout(()=>{el.textContent=t;},40); }
+function say(t){ const el=$('dialog[open] [role="status"]')||$('#sr'); if(!el) return; clearTimeout(srT); el.textContent=''; srT=setTimeout(()=>{el.textContent=t;},40); }
 
 /* ---------- Azar con semilla (mulberry32): las pruebas repiten los mismos ejercicios ---------- */
 function crearRng(seed){

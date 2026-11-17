@@ -43,7 +43,7 @@
     <p class="nota">Atajos: <kbd>E</kbd> escuchar el ejercicio · <kbd>T</kbd> tónica · <kbd>C</kbd> cadencia (en los dictados) · <kbd>1</kbd>–<kbd>9</kbd> elegir opción · <kbd>Intro</kbd> comprobar y pasar al siguiente. El progreso se guarda solo en este navegador.</p>
   </footer>
 </div>
-<dialog class="bienv" id="bienv" aria-labelledby="bvT1">
+<dialog class="bienv" id="bienv" aria-labelledby="bvT1" closedby="any">
   <p class="tn" id="bvN">Paso 1 de 4</p>
   <section data-paso="0">
     <h2 class="bvt" id="bvT1" tabindex="-1">Bienvenida a Dictado Armónico</h2>
@@ -82,6 +82,7 @@
     <button type="button" class="btn" id="bvOmitir">Omitir</button>
     <span class="bvder"><button type="button" class="btn" id="bvAtras" hidden>Atrás</button><button type="button" class="btn primary" id="bvSig">Siguiente</button></span>
   </div>
+  <div id="bvSr" class="sr-only" role="status" aria-live="polite"></div>
 </dialog>
 <div id="sr" class="sr-only" role="status" aria-live="polite"></div>
 <script src="js/glifos.js"></script>
