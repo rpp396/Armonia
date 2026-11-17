@@ -18,11 +18,13 @@ function anotar(id,bien,nv){ const p=store.prog[id]||(store.prog[id]={n:0,ok:0,r
 const progNivel=(id,nv)=>{ const p=store.prog[id]; return p&&p.niv&&p.niv[nv]?p.niv[nv]:{n:0,ok:0}; };
 
 /* ---------- Portada ---------- */
+// los temas se numeran en romanos, como los grados del curso (solo a la vista: el lector de pantalla oye «Tema N»)
+const ROMANOS=['I','II','III','IV','V','VI','VII','VIII','IX'];
 function renderPortada(){
   const total=EJ.reduce((s,e)=>s+(store.prog[e.id]?store.prog[e.id].n:0),0);
   $('#app').innerHTML=`<section aria-labelledby="hTemas"><h2 id="hTemas" class="sec">Temas del curso</h2>
     <ol class="temas">${PROGRAMA.map(t=>{ const p=progTema(t.n); return `<li><a class="tema" href="#/tema/${t.n}">
-      <span class="tn">Tema ${t.n}</span><span class="tt">${esc(t.titulo)}</span><span class="tp">${t.puntos.map(esc).join(' · ')}</span>
+      <span class="tnum" aria-hidden="true">${ROMANOS[t.n-1]}</span><span class="sr-only">Tema ${t.n}: </span><span class="tt">${esc(t.titulo)}</span><span class="tp">${t.puntos.map(esc).join(' · ')}</span>
       <span class="pg">${p.n?`<progress max="100" value="${pct(p)}" aria-hidden="true"></progress><span>${p.ok} de ${p.n} bien · ${pct(p)} %</span>`:'<span>Sin ejercicios todavía</span>'}</span></a></li>`; }).join('')}</ol>
     <p class="nota">${total?`Llevas ${total} ${total===1?'ejercicio':'ejercicios'} en total.`:'Elige un tema: cada uno tiene un resumen, ejercicios de teoría y ejercicios de oído que se generan al azar.'}</p></section>`;
   document.title='Dictado Armónico';
@@ -32,7 +34,7 @@ function renderPortada(){
 function renderTema(){
   const t=PROGRAMA[V.tema-1], nv=nivelDe(V.tema);
   $('#app').innerHTML=`<nav aria-label="Navegación"><a class="volver" href="#/">← Todos los temas</a></nav>
-    <header class="th"><div><p class="tn">Tema ${t.n}</p><h2 id="hTema" tabindex="-1">${esc(t.titulo)}</h2></div></header>
+    <header class="th"><span class="tnum" aria-hidden="true">${ROMANOS[t.n-1]}</span><div><p class="tn">Tema ${t.n}</p><h2 id="hTema" tabindex="-1">${esc(t.titulo)}</h2></div></header>
     <div class="niv" role="group" aria-labelledby="nivL"><span class="nivl" id="nivL">Dificultad</span>${NIVELES.map(([v,x])=>`<button type="button" class="nivb" data-nivel="${v}" aria-pressed="${v===nv}">${x}</button>`).join('')}</div>
     <div class="tabs" role="tablist" aria-label="Secciones del tema">${TABS.map(([k,x])=>`<button type="button" role="tab" id="tab-${k}" data-tab="${k}" aria-selected="${k===V.tab}" aria-controls="panel" tabindex="${k===V.tab?0:-1}">${x}</button>`).join('')}</div>
     <section id="panel" role="tabpanel" aria-labelledby="tab-${V.tab}"></section>`;
