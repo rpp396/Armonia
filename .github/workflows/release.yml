@@ -1,0 +1,44 @@
+name: Publicar versión
+
+# Se dispara al subir una etiqueta que empiece por «v» (v1.0.0, v1.1.0, v2.0.0-beta…).
+# Pasa las pruebas, arma un .zip solo con lo que necesita la app y crea la release con las notas generadas.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Ejecutar las pruebas
+        run: npm test
+
+      - name: Armar el .zip de la app
+        run: |
+          NOMBRE="dictado-armonico-${GITHUB_REF_NAME}"
+          mkdir -p "dist/$NOMBRE"
+          cp -r index.html styles.css manifest.webmanifest sw.js js fonts iconos LICENSE README.md "dist/$NOMBRE/"
+          (cd dist && zip -qr "$NOMBRE.zip" "$NOMBRE")
+          echo "ZIP=dist/$NOMBRE.zip" >> "$GITHUB_ENV"
+
+      - name: Crear la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # una etiqueta con guion (v1.2.0-beta) sale como versión preliminar
+          PRE=""
+          case "$GITHUB_REF_NAME" in *-*) PRE="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" "$ZIP" \
+            --title "Dictado Armónico ${GITHUB_REF_NAME#v}" \
+            --generate-notes --verify-tag $PRE

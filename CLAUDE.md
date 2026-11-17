@@ -86,6 +86,10 @@ registrar({id:'t1-identificar', tema:1, modo:'teoria'|'oido', titulo, gen(R, niv
 - `inicio.js` registra el worker y añade el `<link rel="manifest">` **solo con http(s)**. Con `file://` no hace nada: Chromium rechaza el manifiesto de un archivo local con un error de CORS en la consola, por eso el enlace no está en `index.html`.
 - La CSP añade `manifest-src 'self'; worker-src 'self'` (con `default-src 'none'` harían falta). Nada más.
 
+## Versiones (releases)
+
+- `.github/workflows/release.yml`: al subir una etiqueta `v*` (`git tag -a v1.2.0 -m …` y `git push origin v1.2.0`) pasa las pruebas, arma `dictado-armonico-vX.Y.Z.zip` con lo que necesita la app (`index.html`, `styles.css`, `manifest.webmanifest`, `sw.js`, `js/`, `fonts/`, `iconos/`, `LICENSE`, `README.md`) y crea la release con notas generadas. Una etiqueta con guion (`v1.2.0-beta`) sale como versión preliminar. **Si se añade una carpeta o un archivo de nivel superior a la app, hay que añadirlo también al `cp` del flujo.**
+
 ## Pruebas
 
 `npm test` (Node 18 o posterior, sin dependencias) ejecuta `tests/*.test.mjs`:
