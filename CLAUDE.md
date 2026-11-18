@@ -88,7 +88,9 @@ registrar({id:'t1-identificar', tema:1, modo:'teoria'|'oido', titulo, gen(R, niv
 
 ## Versiones (releases)
 
-- `.github/workflows/release.yml`: al subir una etiqueta `v*` (`git tag -a v1.2.0 -m …` y `git push origin v1.2.0`) pasa las pruebas, arma `dictado-armonico-vX.Y.Z.zip` con lo que necesita la app (`index.html`, `styles.css`, `manifest.webmanifest`, `sw.js`, `js/`, `fonts/`, `iconos/`, `LICENSE`, `README.md`) y crea la release con notas generadas. Una etiqueta con guion (`v1.2.0-beta`) sale como versión preliminar. **Si se añade una carpeta o un archivo de nivel superior a la app, hay que añadirlo también al `cp` del flujo.**
+- **Regla: las versiones siguen [Semantic Versioning 2.0.0](https://semver.org/lang/es/)** (lo pidió el usuario). La etiqueta es `v` + `MAYOR.MENOR.PARCHE`, sin ceros a la izquierda, con identificadores preliminares (`-beta.1`) y metadatos (`+20261118`) opcionales. Se sube el **PARCHE** con arreglos que no cambian el uso (una explicación corregida); el **MENOR** con algo nuevo compatible (un tipo de ejercicio, una ayuda); el **MAYOR** con un cambio incompatible, como un formato de progreso guardado o exportado que las versiones anteriores ya no lean (cambiar la clave `dictado-armonico-v1` o el `v` del JSON exportado). Mientras la versión empiece por `0.`, cualquier cosa puede cambiar. Cada versión nueva tiene que tener **más precedencia** que todas las anteriores (§11).
+- `.github/semver.mjs` lo comprueba (la expresión regular oficial de semver.org y la precedencia del §11, sin dependencias); `tests/semver.test.mjs` lo prueba con los ejemplos de la especificación.
+- `.github/workflows/release.yml`: al subir una etiqueta `v*` (`git tag -a v1.2.0 -m …` y `git push origin v1.2.0`) primero valida la versión con `semver.mjs` contra las etiquetas existentes (si no cumple, falla y no publica nada: hay que borrar la etiqueta con `git push origin --delete v…`), luego pasa las pruebas, arma `dictado-armonico-vX.Y.Z.zip` con lo que necesita la app (`index.html`, `styles.css`, `manifest.webmanifest`, `sw.js`, `js/`, `fonts/`, `iconos/`, `LICENSE`, `README.md`) y crea la release con notas generadas. Una versión con identificador preliminar sale como versión preliminar (un guion en los metadatos, `+build-1`, no cuenta). **Si se añade una carpeta o un archivo de nivel superior a la app, hay que añadirlo también al `cp` del flujo.**
 
 ## Pruebas
 
@@ -98,5 +100,6 @@ registrar({id:'t1-identificar', tema:1, modo:'teoria'|'oido', titulo, gen(R, niv
 - `generadores.test.mjs`: cada generador en los tres niveles con muchas semillas (`SEMILLAS=1000 npm test` para más): solución entre las opciones, corrección, explicación sin datos rotos, partitura y sonido válidos.
 - `estatico.test.mjs`: CSP, nada en línea, ninguna dirección externa, validación de lo guardado (incluidos `niv` y `visto`), cuándo sale la bienvenida, y que `sw.js` lista exactamente los archivos de la app, el manifiesto y los iconos.
 - `secuencias.test.mjs`: `ralentizar` y `soloBajo`.
+- `semver.test.mjs`: la regla de versiones de las releases (`.github/semver.mjs`).
 
 `tests/lib.mjs` carga los scripts sin DOM en un contexto de `vm`. **No hay pruebas en navegador**: la interfaz se comprueba a mano.
