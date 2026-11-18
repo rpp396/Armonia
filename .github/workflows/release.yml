@@ -1,6 +1,7 @@
 name: Publicar versión
 
-# Se dispara al subir una etiqueta que empiece por «v» (v1.0.0, v1.1.0, v2.0.0-beta…).
+# Se dispara al subir una etiqueta que empiece por «v». La etiqueta tiene que seguir Semantic Versioning 2.0.0
+# («v» + MAYOR.MENOR.PARCHE, como v1.0.0, v1.1.0-beta.1) y ser mayor que todas las anteriores: si no, no se publica nada.
 # Pasa las pruebas, arma un .zip solo con lo que necesita la app y crea la release con las notas generadas.
 on:
   push:
@@ -16,10 +17,16 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # con todas las etiquetas, para comparar con las versiones anteriores
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Comprobar la versión (Semantic Versioning 2.0.0)
+        id: version
+        run: node .github/semver.mjs "$GITHUB_REF_NAME" $(git tag --list 'v*') >> "$GITHUB_OUTPUT"
 
       - name: Ejecutar las pruebas
         run: npm test
@@ -36,9 +43,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # una etiqueta con guion (v1.2.0-beta) sale como versión preliminar
+          # una versión con identificador preliminar (v1.2.0-beta.1) sale como versión preliminar
           PRE=""
-          case "$GITHUB_REF_NAME" in *-*) PRE="--prerelease" ;; esac
+          if [ "${{ steps.version.outputs.prerelease }}" = "true" ]; then PRE="--prerelease"; fi
           gh release create "$GITHUB_REF_NAME" "$ZIP" \
             --title "Dictado Armónico ${GITHUB_REF_NAME#v}" \
             --generate-notes --verify-tag $PRE
