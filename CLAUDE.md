@@ -64,6 +64,7 @@ registrar({id:'t1-identificar', tema:1, modo:'teoria'|'oido', titulo, gen(R, niv
 
 ## Diseño y accesibilidad
 
+- **Identidad visual** (lo pidió el usuario: «elegante y moderno»): papel pautado y lápiz bicolor. La cabecera es un pentagrama a todo lo ancho (`.pauta`, líneas con `repeating-linear-gradient`, `--sp` es el espacio) con la clave de sol de `GLYPHS` (`<use href="#g-gClef">`) y el título encima; las líneas se trazan una vez al cargar (sin animación con `prefers-reduced-motion`). Los temas se numeran en romanos (`ROMANOS` en `interfaz.js`, solo a la vista; el lector oye «Tema N») en un índice sin tarjetas. Azul (`--accent`) para elegir, rojo (`--bad`) para corregir; lo seleccionado va en tinta llena. Lo que suena va en píldora (`.btn.play`, `.btn.ref`), las acciones en rectángulo. Young Serif para títulos, numerales y pestañas; la mono solo para cifrados y teclas.
 - **Color:** los tokens de `:root` usan `light-dark(claro, oscuro)` con `color-scheme: light dark` (y `data-theme` lo fija); un bloque `@supports not (color: light-dark(...))` repite los valores para navegadores anteriores a 2024. `accent-color` y `scrollbar-color` siguen la paleta. `@media (forced-colors: active)` marca lo pulsado, `.bien`/`.mal` y el pentagrama con colores del sistema.
 - **Fuentes:** todas en `woff2`. `Atkinson respaldo` y `Young Serif respaldo` son `local()` con `size-adjust`/`*-override` medidos con fontTools, para que no salte la maquetación. No hay `<link rel="preload">`: con `file://` falla por CORS.
 - Sin estilos en línea ni scripts en línea: la CSP de `index.html` es `default-src 'none'; script-src 'self'; style-src 'self'`. Las barras de progreso son `<progress>`, no anchos en `style`.
@@ -84,6 +85,10 @@ registrar({id:'t1-identificar', tema:1, modo:'teoria'|'oido', titulo, gen(R, niv
 - `sw.js` precarga la lista `ARCHIVOS` (HTML, CSS, manifiesto, iconos, fuentes y todos los JS) para que la app funcione sin conexión. Responde **primero desde la red** y guarda en la caché lo que llega bien; solo usa la caché sin conexión o si la red tarda más de 3 s (ignorando la cadena de consulta, para `?semilla=`). Lo pidió el usuario, para que nadie se quede con una versión vieja: cambiar un archivo no exige tocar `sw.js`. **Al añadir o quitar un archivo hay que actualizar `ARCHIVOS`** y conviene subir `VERSION`: una prueba de `estatico.test.mjs` compara la lista con los archivos reales.
 - `inicio.js` registra el worker y añade el `<link rel="manifest">` **solo con http(s)**. Con `file://` no hace nada: Chromium rechaza el manifiesto de un archivo local con un error de CORS en la consola, por eso el enlace no está en `index.html`.
 - La CSP añade `manifest-src 'self'; worker-src 'self'` (con `default-src 'none'` harían falta). Nada más.
+
+## Versiones (releases)
+
+- `.github/workflows/release.yml`: al subir una etiqueta `v*` (`git tag -a v1.2.0 -m …` y `git push origin v1.2.0`) pasa las pruebas, arma `dictado-armonico-vX.Y.Z.zip` con lo que necesita la app (`index.html`, `styles.css`, `manifest.webmanifest`, `sw.js`, `js/`, `fonts/`, `iconos/`, `LICENSE`, `README.md`) y crea la release con notas generadas. Una etiqueta con guion (`v1.2.0-beta`) sale como versión preliminar. **Si se añade una carpeta o un archivo de nivel superior a la app, hay que añadirlo también al `cp` del flujo.**
 
 ## Pruebas
 
