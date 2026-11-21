@@ -1,15 +1,27 @@
 name: Publicar versión
 
-# Se dispara al subir una etiqueta que empiece por «v». La etiqueta tiene que seguir Semantic Versioning 2.0.0
-# («v» + MAYOR.MENOR.PARCHE, como v1.0.0, v1.1.0-beta.1) y ser mayor que todas las anteriores: si no, no se publica nada.
-# Pasa las pruebas, arma un .zip solo con lo que necesita la app y crea la release con las notas generadas.
+# Dos formas de publicar una versión (las dos exigen Semantic Versioning 2.0.0: «v» + MAYOR.MENOR.PARCHE,
+# como v1.0.0 o v1.1.0-beta.1, y mayor que todas las anteriores; si no, no se publica nada):
+#  1. Subir una etiqueta que empiece por «v» (git tag -a v1.0.0 -m … && git push origin v1.0.0).
+#  2. Desde la web: Actions → «Publicar versión» → Run workflow, escribiendo la versión. Crea la etiqueta sobre `main`.
+# En los dos casos pasa las pruebas, arma un .zip solo con lo que necesita la app y crea la release con notas generadas.
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión nueva, con la «v» (por ejemplo v1.0.0 o v1.1.0-beta.1)'
+        required: true
+        type: string
 
 permissions:
   contents: write
+
+env:
+  # la etiqueta que se sube, o la versión escrita en el botón
+  VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
 
 jobs:
   release:
@@ -24,16 +36,26 @@ jobs:
         with:
           node-version: 22
 
+      - name: Comprobar que se lanza desde main y que la etiqueta no existe
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Las versiones se publican desde main. Elige la rama main en «Use workflow from»."; exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/$VERSION" >/dev/null; then
+            echo "::error::La etiqueta $VERSION ya existe. Elige una versión nueva."; exit 1
+          fi
+
       - name: Comprobar la versión (Semantic Versioning 2.0.0)
         id: version
-        run: node .github/semver.mjs "$GITHUB_REF_NAME" $(git tag --list 'v*') >> "$GITHUB_OUTPUT"
+        run: node .github/semver.mjs "$VERSION" $(git tag --list 'v*') >> "$GITHUB_OUTPUT"
 
       - name: Ejecutar las pruebas
         run: npm test
 
       - name: Armar el .zip de la app
         run: |
-          NOMBRE="dictado-armonico-${GITHUB_REF_NAME}"
+          NOMBRE="dictado-armonico-${VERSION}"
           mkdir -p "dist/$NOMBRE"
           cp -r index.html styles.css manifest.webmanifest sw.js js fonts iconos LICENSE README.md "dist/$NOMBRE/"
           (cd dist && zip -qr "$NOMBRE.zip" "$NOMBRE")
@@ -42,10 +64,16 @@ jobs:
       - name: Crear la release
         env:
           GH_TOKEN: ${{ github.token }}
+          PRELIMINAR: ${{ steps.version.outputs.prerelease }}
         run: |
+          ARGS=()
           # una versión con identificador preliminar (v1.2.0-beta.1) sale como versión preliminar
-          PRE=""
-          if [ "${{ steps.version.outputs.prerelease }}" = "true" ]; then PRE="--prerelease"; fi
-          gh release create "$GITHUB_REF_NAME" "$ZIP" \
-            --title "Dictado Armónico ${GITHUB_REF_NAME#v}" \
-            --generate-notes --verify-tag $PRE
+          if [ "$PRELIMINAR" = "true" ]; then ARGS+=(--prerelease); fi
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            ARGS+=(--target "$GITHUB_SHA")   # la etiqueta aún no existe: se crea sobre este commit
+          else
+            ARGS+=(--verify-tag)
+          fi
+          gh release create "$VERSION" "$ZIP" \
+            --title "Dictado Armónico ${VERSION#v}" \
+            --generate-notes "${ARGS[@]}"
