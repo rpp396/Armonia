@@ -95,12 +95,12 @@ function registrarAcordes(tema){
 
   /* ----- Oído ----- */
   registrar({id:pref+'-oido-tipo',tema,modo:'oido',titulo:`Tipo de ${acNom}`,gen(R,nv){
-    // tema 2, avanzado: las tríadas mayores y menores pueden sonar invertidas; las aumentadas y disminuidas, siempre en estado fundamental (lo pidió el usuario)
-    const invierte=!cuatro&&nv>=3, puede=t=>invierte&&(t==='M'||t==='m');
-    const tipos=cuatro?tiposNivel(nv):TRIADAS.slice(0,nv<=1?2:4), ac=elegirAcorde(R,Math.max(nv,2),tipos), estado=puede(ac.tipo)?R.int(3):0, notas=disponer(ac,estado);
+    // tema 2, avanzado: los cuatro tipos pueden sonar invertidos (lo pidió el usuario)
+    const invierte=!cuatro&&nv>=3;
+    const tipos=cuatro?tiposNivel(nv):TRIADAS.slice(0,nv<=1?2:4), ac=elegirAcorde(R,Math.max(nv,2),tipos), estado=invierte?R.int(3):0, notas=disponer(ac,estado);
     const desc={M:'tercera mayor + tercera menor; quinta justa',m:'tercera menor + tercera mayor; quinta justa',aug:'dos terceras mayores; quinta aumentada',dim:'dos terceras menores; quinta disminuida'};
     return { enunciado:`Escucha ${cuatro?'la tétrada':'la tríada'} (${invierte?'puede estar invertida':'en estado fundamental'}). ¿De qué tipo es?`, vista:'', vistaSol:pent([{notas,arriba:cifrado(ac,estado)}]), sonar:secAcorde(notas),
-      sonarResp:r=>{ const x=r.tipo&&acorde(ac.fund,r.tipo); return x?secAcorde(disponer(x,puede(x.tipo)?estado:0)):null; },
+      sonarResp:r=>{ const x=r.tipo&&acorde(ac.fund,r.tipo); return x?secAcorde(disponer(x,estado)):null; },
       campos:[campo('tipo','Tipo',tipos.map(t=>op(t,cuatro?`${esc(TIPOS[t].cif)} · ${esc(TIPOS[t].nom)}`:Cap(TRI_NOM[t]))))], sol:{tipo:ac.tipo}, resumen:`Sonó ${cifrado(ac,estado)} (${notasTxt(notas)}): ${cuatro?TIPOS[ac.tipo].nom:'tríada '+TRI_NOM[ac.tipo]}.`,
       explicar:r=>par(`Sonó <b>${cifrado(ac,estado)}</b>: ${notasTxt(notas)}${estado?`, en ${ESTADOS[estado]} (el bajo es la ${COMPONENTE[estado]}); ordenada por terceras: ${notasTxt(ac.notas)}`:''}. Es una <b>${cuatro?TIPOS[ac.tipo].nom:'tríada '+TRI_NOM[ac.tipo]}</b>${cuatro?'':` (${desc[ac.tipo]})`}.`)+
         (r.tipo&&r.tipo!==ac.tipo&&acorde(ac.fund,r.tipo)?`<p class="tu">Respondiste ${cuatro?TIPOS[r.tipo].nom:'tríada '+TRI_NOM[r.tipo]}, que sobre ${nom(ac.fund)} sería ${notasTxt(acorde(ac.fund,r.tipo).notas)}. Compara las dos con los botones de abajo y fíjate en ${difAcordes(ac,acorde(ac.fund,r.tipo))}.</p>`:'')+listaPasos(pasosTipo(ac,notas)) };
