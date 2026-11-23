@@ -67,6 +67,20 @@ for (const g of EJ.filter(e => e.modo === 'teoria')) {
 }
 const conAlt = EJ.filter(g => g.modo === 'teoria').flatMap(g => [g.gen(crearRng(1), 3)]).flatMap(e => e.campos).filter(c => c.id === 'alt');
 ok(conAlt.length > 0 && conAlt.every(c => ['-2', '2'].every(v => c.opciones.some(o => o.v === v))), 'en avanzado, los botones de alteración incluyen doble sostenido y doble bemol');
+suite('Tema 2 · tipo de tríada al oído');
+{ const g = EJ.find(e => e.id === 't2-oido-tipo');
+  for (const nv of [1, 2, 3]) {
+    const tipos = new Set(); let inv = 0, malos = 0;
+    for (let s = 0; s < 400; s++) {
+      const e = g.gen(crearRng(s * 13 + nv), nv); tipos.add(e.sol.tipo);
+      if (/^Sonó \S+\//.test(e.resumen)) { inv++; if (!['M', 'm'].includes(e.sol.tipo)) malos++; }
+    }
+    const esperados = nv === 1 ? ['M', 'm'] : ['M', 'm', 'aug', 'dim'];
+    ok(tipos.size === esperados.length && esperados.every(t => tipos.has(t)), `nivel ${nv}: salen ${esperados.join(', ')} (${[...tipos].join(', ')})`);
+    ok(malos === 0, `nivel ${nv}: las aumentadas y disminuidas suenan siempre en estado fundamental`);
+    ok(nv < 3 ? inv === 0 : inv > 50, `nivel ${nv}: ${nv < 3 ? 'nada invertido' : 'mayores y menores a veces invertidas'} (${inv} de 400)`);
+  }
+}
 suite('Tema 5 y tema 6');
 { const est = EJ.find(e => e.id === 't5-oido-estructura').gen(crearRng(1), 3).campos[0].opciones.map(o => o.v);
   ok(['m7', '6sus4', '6sus2', '7sus4', 'm6'].every(k => est.includes(k)), 'en avanzado se oyen m7, m6, 6sus4, 6sus2 y 7sus4');
